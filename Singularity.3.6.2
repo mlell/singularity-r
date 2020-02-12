@@ -45,7 +45,8 @@ From: ubuntu:16.04
     libssl-dev \
     libxml2-dev \
     libcairo2-dev \
-    libxt-dev
+    libxt-dev \
+    pandoc
 
   # Add a default CRAN mirror
   echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/lib/R/etc/Rprofile.site
