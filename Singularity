@@ -21,7 +21,7 @@ From: debian:sid
   # Get dependencies
   apt-get update
   apt-get install -y --no-install-recommends \
-    locales libopenblas-dev
+    locales curl gpg dirmngr gpg-agent libopenblas-dev
 
   # Configure default locale
   echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
