@@ -1,5 +1,5 @@
 BootStrap: docker
-From: ubuntu:16.04
+From: debian:sid
 
 %labels
   Maintainer Moritz Lell
