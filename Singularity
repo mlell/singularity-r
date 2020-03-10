@@ -3,7 +3,7 @@ From: debian:sid
 
 %labels
   Maintainer Moritz Lell
-  R_Version 3.6.2
+  R_Version 3.6.3
 
 %apprun R
   exec R "${@}"
@@ -16,7 +16,7 @@ From: debian:sid
 
 %post
   # Software versions
-  export R_VERSION=3.6.2
+  export R_VERSION=3.6.3
 
   # Get dependencies
   apt-get update
@@ -31,8 +31,6 @@ From: debian:sid
   export LANG=en_US.UTF-8
 
   # Install R
-  echo "deb http://cran.r-project.org/bin/linux/ubuntu xenial-cran35/" > /etc/apt/sources.list.d/r.list
-  apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
   apt-get update
   apt-get install -y --no-install-recommends \
     r-base=${R_VERSION}* \
