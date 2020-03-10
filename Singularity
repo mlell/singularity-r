@@ -2,7 +2,7 @@ BootStrap: docker
 From: ubuntu:16.04
 
 %labels
-  Maintainer Jeremy Nicklas
+  Maintainer Moritz Lell
   R_Version 3.6.2
 
 %apprun R
