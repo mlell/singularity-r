@@ -49,9 +49,5 @@ From: debian:sid
   # Add a default CRAN mirror
   echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/lib/R/etc/Rprofile.site
 
-  # Add a directory for host R libraries
-  mkdir -p /library
-  echo "R_LIBS_SITE=/library:\${R_LIBS_SITE}" >> /usr/lib/R/etc/Renviron.site
-
   # Clean up
   rm -rf /var/lib/apt/lists/*
