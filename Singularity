@@ -49,6 +49,9 @@ From: debian:sid
 
   # Add a default CRAN mirror
   echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/lib/R/etc/Rprofile.site
+  
+  # Set default python version
+  ln -s python3 /usr/bin/python
 
   # Clean up
   rm -rf /var/lib/apt/lists/*
