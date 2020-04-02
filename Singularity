@@ -5,6 +5,9 @@ From: debian:sid
   Maintainer Moritz Lell
   R_Version 3.6.3
 
+%environment
+  export OMP_NUM_THREADS=1
+
 %apprun R
   exec R "${@}"
 

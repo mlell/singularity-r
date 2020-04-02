@@ -5,6 +5,9 @@ From: debian:sid
   Maintainer Moritz Lell
   R_Version 3.6.3
 
+%environment
+  export OMP_NUM_THREADS=1
+
 %apprun R
   exec R "${@}"
 
@@ -21,7 +24,7 @@ From: debian:sid
   # Get dependencies
   apt-get update
   apt-get install -y --no-install-recommends \
-    locales libopenblas-dev
+    locales curl gpg dirmngr gpg-agent libopenblas-dev
 
   # Configure default locale
   echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
@@ -44,14 +47,14 @@ From: debian:sid
     libxml2-dev \
     libcairo2-dev \
     libxt-dev \
-    pandoc
+    pandoc \
+    git
 
   # Add a default CRAN mirror
   echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/lib/R/etc/Rprofile.site
-
-  # Add a directory for host R libraries
-  mkdir -p /library
-  echo "R_LIBS_SITE=/library:\${R_LIBS_SITE}" >> /usr/lib/R/etc/Renviron.site
+  
+  # Set default python version
+  ln -s python3 /usr/bin/python
 
   # Clean up
   rm -rf /var/lib/apt/lists/*
