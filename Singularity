@@ -3,7 +3,7 @@ From: debian:sid
 
 %labels
   Maintainer Moritz Lell
-  R_Version 3.6.3
+  R_Version 4.0.2
 
 %environment
   export OMP_NUM_THREADS=1
@@ -19,7 +19,7 @@ From: debian:sid
 
 %post
   # Software versions
-  export R_VERSION=3.6.3
+  export R_VERSION=4.0.2
 
   # Get dependencies
   apt-get update
