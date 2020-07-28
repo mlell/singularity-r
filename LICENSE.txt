@@ -1,4 +1,8 @@
-Copyright 2018 Jeremy Nicklas
+This project is a fork of https://github.com/nickjer/singularity-r,
+Copyright 2018 Jeremy Nicklas, who created the project as of commit
+bd592d462895da1221c4b92c50e1f91b8746b860.
+
+Copyright of the newer parts 2020 IPK Gatersleben.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
