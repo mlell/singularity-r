@@ -48,7 +48,10 @@ From: debian:sid
     libcairo2-dev \
     libxt-dev \
     pandoc \
-    git
+    git \
+    vim  \
+    emacs \
+    nano
 
   # Add a default CRAN mirror
   echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/lib/R/etc/Rprofile.site
