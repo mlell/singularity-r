@@ -19,7 +19,7 @@ From: debian:sid
 
 %post
   # Software versions
-  export R_VERSION=4.0.2
+  export R_VERSION=4.0.3
 
   # Get dependencies
   apt-get update
@@ -42,6 +42,7 @@ From: debian:sid
     r-recommended=${R_VERSION}* \
     r-base-html=${R_VERSION}* \
     r-doc-html=${R_VERSION}* \
+    libpython3-all-dev \
     libcurl4-openssl-dev \
     libssl-dev \
     libxml2-dev \
@@ -51,8 +52,11 @@ From: debian:sid
     git \
     vim  \
     emacs \
-    nano
-
+    nano \
+    graphviz \
+    procps \
+    libnetcdf18 libnetcdf-dev
+    
   # Add a default CRAN mirror
   echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/lib/R/etc/Rprofile.site
   
