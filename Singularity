@@ -35,6 +35,35 @@ From: debian:sid
 
   # Install R
   apt-get update
+  # Installed packages:
+  # * R
+  # * Python + libpython headers for package compilation
+  # * Library headers inspired by CRAN SystemRequirements fields:
+  #   - for tidyverse:          libcairo, libxml
+  #   - Linear algebra:
+  #      libarmadillo
+  #   - handle netCDF and HDF files (CRAN: netcdf4, sf, gdal,...)
+  #      libnetcdf, libgdal, libproj, libudunits2
+  #   - Other geo stuff:
+  #      libgeotiff
+  #   - Fast Fourier Transform: libfftw
+  #   - image manipulation
+  #       libtiff5 libjpeg (Pseudo-package ->libjpeg-turbo)
+  #       librsvg
+  #       imagemagick 
+  #   - Glyph rendering and Unicode:
+  #       harfbuzz libicu 
+  #   - Compression:            zlib1g bzip zstd zip
+  #   - Systems Biology ML:     libsbml5
+  #   - GNU Scientific Library: gsl
+  #   - Cryptography:           libsodium
+  #   - BUGS Monte Carlo language: jags
+  #   - Linear Programming:     glpk
+  #   - CDO Climate data library libcdi
+  #   - Grid computing scheduler:
+  #       libzmq3 libopenmpi
+  #   - libboost-dev -> >100MB! currently not included. -> BH package?
+  #   - DBMS:                   libpq (libmariaclientdb <-version mismatch during install)
   apt-get install -y --no-install-recommends \
     r-base=${R_VERSION}* \
     r-base-core=${R_VERSION}* \
@@ -45,18 +74,35 @@ From: debian:sid
     libpython3-all-dev \
     libcurl4-openssl-dev \
     libssl-dev \
+    vim emacs   nano   graphviz \
+    git procps  pandoc imagemagick \
+    jags \
     libxml2-dev \
     libcairo2-dev \
     libxt-dev \
-    pandoc \
-    git \
-    vim  \
-    emacs \
-    nano \
-    graphviz \
-    procps \
-    libnetcdf18 libnetcdf-dev
+    libarmadillo-dev \
+    libnetcdf18 libnetcdf-dev libhdf5-dev\
+    gdal-bin libgdal-dev \
+    proj-bin libproj-dev \
+    libudunits2-dev \
+    libgeotiff-dev \
+    libfftw3-dev \
+    libtiff-dev libjpeg-dev librsvg2-dev libpng-dev \
+    libharfbuzz-dev libicu-dev\
+    zlib1g-dev libbz2-dev libzstd-dev libzip-dev\
+    libsbml5-dev \
+    libgsl-dev \
+    libsodium-dev \
+    libglpk-dev \
+    libcdi-dev \
+    libzmq3-dev libopenmpi-dev libcoarrays-openmpi-dev \
+    libpq-dev 
+#libmariadbclient-dev 
     
+    
+    
+    
+
   # Add a default CRAN mirror
   echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/lib/R/etc/Rprofile.site
   
@@ -65,3 +111,4 @@ From: debian:sid
 
   # Clean up
   rm -rf /var/lib/apt/lists/*
+
