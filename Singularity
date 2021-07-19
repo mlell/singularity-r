@@ -74,7 +74,7 @@ From: debian:sid
     libpython3-all-dev \
     libcurl4-openssl-dev \
     libssl-dev \
-    vim emacs   nano   graphviz \
+    vim emacs-nox   nano   graphviz \
     git procps  pandoc imagemagick \
     jags \
     libxml2-dev \
