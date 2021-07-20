@@ -62,7 +62,6 @@ From: debian:sid
   #   - CDO Climate data library libcdi
   #   - Grid computing scheduler:
   #       libzmq3 libopenmpi
-  #   - libboost-dev -> >100MB! currently not included. -> BH package?
   #   - DBMS:                   libpq (libmariaclientdb <-version mismatch during install)
   apt-get install -y --no-install-recommends \
     r-base=${R_VERSION}* \
@@ -75,7 +74,7 @@ From: debian:sid
     libcurl4-openssl-dev \
     libssl-dev \
     vim emacs-nox   nano   graphviz \
-    git procps  pandoc imagemagick \
+    git procps  imagemagick \
     jags \
     libxml2-dev \
     libcairo2-dev \
@@ -96,10 +95,19 @@ From: debian:sid
     libglpk-dev \
     libcdi-dev \
     libzmq3-dev libopenmpi-dev libcoarrays-openmpi-dev \
-    libpq-dev 
+    libpq-dev \
+    r-cran-bh 
 #libmariadbclient-dev 
-    
-    
+  # r-cran-bh is a dummy package with no content, but it depends on libboost-dev.
+  # Therefore, the system Boost headers are reused instead of installing them again
+  # with the CRAN BH package. (libgdal-dev) depends on libboost-dev anyway)
+
+  # Install pandoc separately, for the github release has 1/10 the file size of the
+  # Debian package
+  curl -L https://github.com/jgm/pandoc/releases/download/2.14.1/pandoc-2.14.1-1-amd64.deb --output /tmp/pandoc.deb
+  dpkg -I /tmp/pandoc.deb
+  rm /tmp/pandoc.deb
+
     
     
 
