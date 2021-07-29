@@ -4,9 +4,10 @@ From: debian:sid
 %labels
   Maintainer Moritz Lell
   R_Version 4.0.4
-
+  git_repository https://github.com/mlell/singularity-r
 
 %setup
+  set -ue
   mkdir "$SINGULARITY_ROOTFS/usr/lib/container_commands"
   cp_container(){
     install -Dv scripts/outside/"$1" "${SINGULARITY_ROOTFS}/usr/lib/container_commands/$2"
@@ -17,6 +18,16 @@ From: debian:sid
   cp_container user-launcher-r user-launcher
   cp_container setup setup
   
+  if [ -z "${DEBUG-}" ]; then
+    # make sure it doesn't fail
+    git status -s &>/dev/null
+    if [ ! "$(git status -s | wc -l)" = "0" ]; then
+      echo "Working dir dirty!" >&2
+      exit 1
+    fi 
+    git rev-parse HEAD >"$SINGULARITY_ROOTFS/commit"
+  fi
+
 %post
   # Software versions
   export R_VERSION=4.0.4
@@ -121,6 +132,9 @@ From: debian:sid
   rm -rf /var/lib/apt/lists/*
 
 
+  # Write the current git commit as label
+  echo "git_commit $(cat /commit)" >> "$SINGULARITY_LABELS"
+  rm /commit
 
 %apprun R
   exec R "${@}"
