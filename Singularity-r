@@ -5,18 +5,18 @@ From: debian:sid
   Maintainer Moritz Lell
   R_Version 4.0.4
 
-%environment
-  export OMP_NUM_THREADS=1
 
-%apprun R
-  exec R "${@}"
-
-%apprun Rscript
-  exec Rscript "${@}"
-
-%runscript
-  exec R "${@}"
-
+%setup
+  mkdir "$SINGULARITY_ROOTFS/usr/lib/container_commands"
+  cp_container(){
+    install -Dv scripts/outside/"$1" "${SINGULARITY_ROOTFS}/usr/lib/container_commands/$2"
+  }
+  cp_container cexec cexec
+  cp_container functions-r.sh functions-r.sh
+  cp_container createproject-r createproject
+  cp_container user-launcher-r user-launcher
+  cp_container setup setup
+  
 %post
   # Software versions
   export R_VERSION=4.0.4
@@ -70,12 +70,12 @@ From: debian:sid
     r-recommended=${R_VERSION}* \
     r-base-html=${R_VERSION}* \
     r-doc-html=${R_VERSION}* \
-    libpython3-all-dev \
+    libpython3-all-dev python3-pip \
     libcurl4-openssl-dev \
     libssl-dev \
-    vim emacs-nox   nano   graphviz \
-    git procps  imagemagick \
-    jags \
+    nano   graphviz \
+    procps  imagemagick \
+    jags less  \
     libxml2-dev \
     libcairo2-dev \
     libxt-dev \
@@ -119,4 +119,29 @@ From: debian:sid
 
   # Clean up
   rm -rf /var/lib/apt/lists/*
+
+
+
+%apprun R
+  exec R "${@}"
+
+%apprun Rscript
+  exec Rscript "${@}"
+
+%apprun python
+  exec python "${@}"
+
+%environment
+  export OMP_NUM_THREADS=1
+
+%runscript
+  bash /usr/lib/container_commands/setup "$@"
+  if [ "$1" = "setup" ];
+    echo 
+    echo "NOTE: Make sure the container SIF file is called 'r-py.sif'"
+    echo "or adapt the scripts that were just created in the container"
+    echo "directory!"
+  fi
+
+
 

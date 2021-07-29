@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -ue
+thisdir="$(realpath -s "$(dirname "${BASH_SOURCE[0]}")")"
+#
+# Start the RStudio Server container where this folder is set as the 
+# project directory by executing this file.
+# 
+# Use --help to print the help text.
+#
+# === Settings ===========================================================
+
+# Edit this section to change the container options of this project. They
+# are communicated to the container as environment variables. 
+
+# EXTERNAL_FILES:
+# Files/directories that are available in the container besides the project
+# directory.
+# The follwing example makes the directory /home/user/datasets available
+# inside the container as "/ext/input", read-only:
+#
+#   "/home/user/datasets/:/ext/input:ro"  (including quotes)
+#
+# The first path must exist. The second path can be freely chosen.
+# Omit ":ro" to enable write access from within the container.
+# Separate multiple entries by newlines.
+#
+EXTERNAL_FILES=(
+# "/home/user/datasets/:/ext/input:ro" 
+)
+
+# PROJECT_DIR:
+# Per default this is set to the directory where this script lies.
+PROJECT_DIR="$thisdir"
+
+# CONTAINER_DIR:
+# Where the container is located.
+###SED_REPLACE_HERE###
+
+
+# ========= END OF SETTINGS ==================================================
+
+
+# Find container no matter of $PWD and whether CONTAINER_DIR is relative or absolute
+CONTAINER_DIR="$(cd "$thisdir"; realpath -s "$CONTAINER_DIR")"
+source "${CONTAINER_DIR}"/cexec "$@"

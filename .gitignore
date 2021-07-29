@@ -1,1 +1,3 @@
-singularity-r.simg
+*.sif
+*.swp
+

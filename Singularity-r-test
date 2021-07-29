@@ -1,0 +1,33 @@
+BootStrap: docker
+From: debian:sid
+
+%labels
+  Maintainer Moritz Lell
+  R_Version 4.0.4
+
+%files 
+cmd /usr/lib/container_commands/cmd
+createproject /usr/lib/container_commands/createproject
+
+%post
+  # Software versions
+  export R_VERSION=4.0.4
+
+
+    
+
+%environment
+  export OMP_NUM_THREADS=1
+
+%apprun R
+  exec R "${@}"
+
+%apprun Rscript
+  exec Rscript "${@}"
+
+%apprun python
+  exec python "${@}"
+
+%runscript
+
+

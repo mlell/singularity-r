@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+set -ue
+set -o noclobber
+
+if [ "$#" = 0 -o ! "${1-}" = "setup" ]; then
+  echo "Run 'singularity run-help ${SINGULARITY_NAME:-CONTAINER.sif}' for installation instructions"
+  exit 1
+fi
+
+cmddir=/usr/lib/container_commands
+
+if [ ! -f "$SINGULARITY_CONTAINER" ]; then
+  cat >&2 <<EOF
+ERROR: The container folder
+  "$(dirname "$SINGULARITY_CONTAINER")" 
+is not accessible from inside the container.
+
+Possible solutions:
+ * Change the working directory to the directory of the image before trying 
+   again.
+ * Alternatively, use the Singularity option "-B" to make the folder available
+   in the container under the same name as outside.
+ * If the path to the container contains a symbolic link, Singularity might not
+   have bound the referenced folder. Use the canonical path to the container,
+   for example, set the working directory to the canonical path of the container
+   ("cd -P /path/to/container").
+ * Remove environment variables that change the Singularity defaults. Variables
+   starting with "SINGULARITY_...", see the Appendix about environment variables
+   in the Singularity Documentation, https://sylabs.io/docs.
+EOF
+  exit 1
+fi
+
+outputdir="$(dirname "$SINGULARITY_CONTAINER")"
+
+# if y is a subfolder of x (append slashes to avoid /a/bc 
+# being considered subfolder of /a/b
+x="$cmddir/"
+y="$outputdir/"
+if [ "${y::${#x}}" = "$x" ]; then
+  cat >&2 <<EOF
+ERROR: Output folder '$outputdir' conflicts with in-container 
+folder. Use custom singularity commands to extract the contents
+of "$cmddir" to the same directory as the image file.
+EOF
+  exit 1
+fi
+
+
+for f in "$cmddir"/*; do
+  b="$(basename "$f")"
+  if [ "$b" = "setup" ]; then continue; fi
+  if [ -e "$outputdir"/"$b" ]; then
+   echo "File \"$b\" exists already in \"$outputdir\", won't overwrite" >&2
+   exit 1
+  fi
+done
+
+for f in "$cmddir"/*; do
+  b="$(basename "$f")"
+  if [ "$b" = "setup" ]; then continue; fi
+  cp -v -t "$outputdir" "$cmddir/$b" 
+done
+
+echo '' >&2
+echo 'Setup complete. Use the "createproject" command to set a project directory' >&2
+echo '' >&2
+
+

@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+import errno
+import socket
+import sys
+
+def help():
+  msg("""
+Usage: find_port HOSTNAME FROM TO
+       find_port --help
+
+Find a free port and return it on stdout
+
+HOSTNAME   Name or IP address to listen on
+FROM       Minimal port number
+TO         Maximal port number
+""")
+
+
+def msg(x):
+  print(x, file = sys.stderr)
+
+def main(args):
+  if len(args) != 3 or args[0] == "--help":
+    help()
+    sys.exit(1)
+  host = args[0]
+  port_min = int(args[1])
+  port_max = int(args[2])
+
+  port = find_free_port(host, port_min, port_max)
+
+  if port is not None:
+    print(str(port))
+  else:
+    msg(f"No free port between {port_min} and {port_max}")
+    sys.exit(1)
+
+def find_free_port(host, min, max):
+  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  for p in range(min, max):
+    try:
+      s.bind((host, p))
+      return p
+    except socket.error as e:
+      if e.errno != errno.EADDRINUSE:
+        msg("Error {} [{}] while connecting to port {}".format(
+          e.errno, os.strerror(e.errno), p))
+  return None
+
+
+if __name__ == "__main__":
+  e = main(sys.argv[1:])
+  sys.exit(e)

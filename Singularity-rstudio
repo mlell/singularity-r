@@ -1,0 +1,203 @@
+BootStrap: localimage
+From: r-py.sif
+
+%labels
+  Maintainer Moritz Lell
+  RStudio_Version 1.4.1717
+
+%help
+  This container features R linked to OpenBLAS and RStudio Server and are
+  accompanied with scripts that faclitate managing multiple RStudio Server
+  instances and reproducible file paths of the analysis.
+
+  1 Setup after download
+  ======================
+
+  After downloading this container, move it to its own directory and extract
+  the auxilliary scripts by calling
+
+      singularity run IMAGENAME.SIF setup
+
+  
+  2 Project directory
+  ===================
+
+  Change working directory into the root directory of your analysis and
+  call 
+
+      /path/to/container/createproject"
+
+  This creates a script in this directory from which you can call the 
+  programs in the container. From there, your files will be found under
+  the path "/proj", independently from your machine. This makes it easier
+  for others to rerun your analysis because your machine-specific file
+  paths are not visible from within the container.
+
+  To start RStudio Server, call
+
+      ./rstudio start
+
+  To see further options, call
+
+      ./rstudio --help
+
+
+%apprun rserver
+  exec rserver "${@}"
+
+%apphelp rserver
+  RStudio Server. Common parameters:
+  
+  --www-address=...  Network interface to listen to
+  --www-port=...     Port to listen to
+  --auth-none=[0|1]  Set to 0 to force user authentication
+  --auth-pam-helper  Method to authenticate user. 
+  --server-daemonize=[yes|no] 
+                     Whether to run in background.
+  --help             Print all command line arguments beyond those mentioned
+                     here
+
+  Host and port of RStudio server can be set by calling RStudio like this:
+  `rserver --www-address <HOST> --www-port <PORT>`. For HOST, 127.0.0.1 is
+  recommended, as this container provides no encryption of the connection to
+  RStudio.
+
+  When RStudio Server is run on a publicly accessable server, user
+  authentication could be nessecary. This image provides different means of
+  authentication, which can be chosen from by calling RStudio like this:
+  `rserver --auth-none 0 --auth-pam-helper XXXX`, where XXXX is one of
+
+  * rstudio_auth: The password is read from an environment variable named
+    `RSTUDIO_PASSWORD` that can be set by the user
+
+  * rstudio_auth_file: The password is read from a file whose path is defined
+    by the environment variable `RSTUDIO_PASSWORD_FILE`, which can be set by
+    the user. The password file can be created using the tool `rstudio_passwd`
+    that is included in this container.
+
+  * auth_ldap: User authentication is delegated to an LDAP server.
+    call `singularity <CONTAINER> run help_ldap_auth` for more info.
+
+  On a publicly accessable server, the HTTP connection to RStudio Server 
+  must be encrypted by the user, as RStudio Server Community Edition only
+  provides unencrypted HTTP access. The easiest ad-hoc solution would be an
+  SSH tunnel `ssh -L 127.0.0.1:PORT:127.0.0.1:PORT USER@SERVER (note that some
+  machines resolve `localhost` to the IPv6 address ::1 and not to the IPv4 
+  127.0.0.1 which might cause confusion). Another possibility is a HTTPS server
+  acting as a reverse proxy as described in
+  https://support.rstudio.com/hc/en-us/articles/200552326-Running-RStudio-Server-with-a-Proxy
+
+    
+  Supported Methods for --auth-pam-helper: 
+  ========================================
+
+  rstudio_auth: Password is determined by environment variable RSTUDIO_PASSWORD 
+
+  rstudio_auth_file: Password is saved in a file given by the environment 
+  variable RSTUDIO_PASSWORD_FILE. Call rstudio_passwd to change.
+
+  ldap_auth: Authenticate using LDAP. Set environment variables like in this 
+  example:
+    
+    export LDAP_CERT_FILE=/path/to/trusted_root_cert.pem  # optional, see [0]
+    export LDAP_HOST=some.ldap.server.org
+    export LDAP_USER_DN='CN=%s,CN=Users,DC=MyDomain,DC=com'
+
+  Use "singularity run --app help_ldap_auth" for further information on how to
+  use the LDAP authentication with RStudio Server.
+
+  ________________
+  
+  [0] A certificate file is only required if the default system
+  certificate store is not accepted by the LDAP server.
+
+
+
+
+
+%setup
+  install -Dv \
+    scripts/inside/rstudio_auth.sh \
+    ${SINGULARITY_ROOTFS}/usr/lib/rstudio-server/bin/rstudio_auth
+  install -Dv \
+    scripts/inside/rstudio_auth_file.py \
+    ${SINGULARITY_ROOTFS}/usr/lib/rstudio-server/bin/rstudio_auth_file
+  install -Dv \
+    scripts/inside/ldap_auth.py \
+    ${SINGULARITY_ROOTFS}/usr/lib/rstudio-server/bin/ldap_auth
+  install -Dv \
+    scripts/inside/rstudio_passwd.py \
+    ${SINGULARITY_ROOTFS}/usr/lib/rstudio-server/bin/rstudio_passwd
+  install -Dv \
+    scripts/inside/find_port \
+    ${SINGULARITY_ROOTFS}/usr/bin
+
+  cp_container(){
+    install -Dv scripts/outside/"$1" "${SINGULARITY_ROOTFS}/usr/lib/container_commands/$2"
+  }
+  cp_container rstudio rstudio
+  cp_container rstudio_adv rstudio_adv
+  cp_container createproject-rstudio createproject
+  cp_container user-launcher-rstudio user-launcher
+
+%post
+  # Software versions
+  export RSTUDIO_VERSION=1.4.1717
+
+  # Install RStudio Server
+  apt-get update
+  apt-get install -y --no-install-recommends \
+    ca-certificates \
+    wget \
+    gdebi-core \
+    git vim emacs-nox
+  wget \
+    --no-verbose \
+    -O rstudio-server.deb \
+    "https://download2.rstudio.org/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb"
+  gdebi -n rstudio-server.deb
+  rm -f rstudio-server.deb
+
+  # Add support for LDAP authentication
+  #wget \
+  #  --no-verbose \
+  #  -O get-pip.py \
+  #  "https://bootstrap.pypa.io/get-pip.py"
+  #python3 get-pip.py
+  #rm -f get-pip.py
+  pip3 install ldap3
+
+  # Do not let OpenBLAS launch a thread per core, that exhausts resource
+  # limits when running many workers on machines with many cores
+  # RStudio server does not honor environment variables, so I need to
+  # set it here in addition to the environment variable already present in the
+  # base image.
+  echo "OMP_NUM_THREADS=1" >> /etc/R/Renviron.site
+
+  # Clean up
+  rm -rf /var/lib/apt/lists/*
+
+%environment
+  export PATH=/usr/lib/rstudio-server/bin:${PATH}
+
+%apprun rstudio_passwd
+  exec /usr/lib/rstudio-server/bin/rstudio_passwd "${@}"
+
+%apphelp rstudio_passwd
+  Save a password to access RStudio Server via the browser. Execute
+  `rstudio_passwd --help` for more information.
+
+%apprun help_ldap_auth
+  exec /usr/lib/rstudio-server-bin/ldap_auth --help
+
+
+%runscript
+  bash /usr/lib/container_commands/setup "$@"
+  if [ "$1" = "setup" ];
+    echo 
+    echo "NOTE: Make sure the container SIF file is called 'rstudio.sif'"
+    echo "or adapt the scripts that were just created in the container"
+    echo "directory!"
+  fi
+
+
