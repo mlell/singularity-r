@@ -7,6 +7,45 @@ MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
   R_Version 4.0.4
   git_repository https://github.com/mlell/singularity-r
 
+%help 
+
+  The containers are accompanied by helper scripts that make your project available at a 
+  pre-defined path regardless of where the files lie on your machine. This way, using absolute 
+  paths do not lead to reproducibility issues. So, if you create your analyis, be sure to refer 
+  to a file with a path starting with
+
+      /proj/PATH/TO/YOUR/FILE
+
+
+  The directory /proj will be translated to your project root directory. The section "How to obtain" 
+  describes how to set your project root directory.
+
+  A possibility to include external files and folders is also available which enables to clearly 
+  document the dependencies of your work. It is also described in the next section.
+
+  1 Setup after download
+  ======================
+
+  After downloading this container, move it to its own directory and extract
+  the auxilliary scripts by calling
+
+      singularity run -B "$PWD" --pwd "$PWD" CONTAINERNAME.sif setup
+
+  
+  2 Project directory
+  ===================
+
+  Change working directory into the root directory of your analysis and
+  call (replace upper-case parts):
+
+      /PATH/TO/CONTAINER/createproject"
+
+  This creates a script in this directory from which you can call the 
+  programs in the container. From there, your files will be found under
+  the path "/proj", independently from your machine. This makes it easier
+  for others to rerun your analysis because your machine-specific file
+  paths are not visible from within the container.
+
 %setup
   set -ue
   mkdir "$SINGULARITY_ROOTFS/usr/lib/container_commands"

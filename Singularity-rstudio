@@ -16,16 +16,16 @@ From: r-py.sif
   After downloading this container, move it to its own directory and extract
   the auxilliary scripts by calling
 
-      singularity run IMAGENAME.SIF setup
+      singularity run -B "$PWD" --pwd "$PWD" CONTAINERNAME.sif setup
 
   
   2 Project directory
   ===================
 
   Change working directory into the root directory of your analysis and
-  call 
+  call (replace upper-case parts):
 
-      /path/to/container/createproject"
+      /PATH/TO/CONTAINER/createproject"
 
   This creates a script in this directory from which you can call the 
   programs in the container. From there, your files will be found under
