@@ -395,9 +395,11 @@ EOF
     create "$id";
     msg "Created new container \"$id\""
   fi
+
+  # Create if they don't exist
   mkdir -p "$rundir"
-  mkdir "$rundir/var-lib"
-  mkdir "$rundir/rstudio"
+  mkdir -p "$rundir/var-lib"
+  mkdir -p "$rundir/rstudio"
 
   (
     singularity instance start \

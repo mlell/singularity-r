@@ -79,5 +79,23 @@ mkdir subdir
 cd subdir
 wd="$(../rstudio exec pwd)"
 test "$wd" = "/proj/subdir"
+cd ..
+
+#
+################ RStudio: start, stop, restart 
+#
+
+# Set RStudio passwort "test"
+cat  >.rstudio-passwd <<'EOF'
+$6$LqGleFffXVZs1uew$SQRgaAXw18WLbfKagMGGkbz5ZZ/zEsIDWDT4Q4L5P5x9ZcfYpAH18eZUppOvOY.AGfP5B0Sn20pPoFbBPKBv71
+EOF
+./rstudio start test
+# wait until RStudio ist started
+sleep 5s 
+./rstudio stop test
+sleep 5s
+./rstudio start test
+
 
 echo "All tests passed!"
+
