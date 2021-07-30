@@ -51,7 +51,6 @@ ARGS_EXEC=(
 # Add external files as "-B...." arguments to singularity
 # command line
 for i in ${!EXTERNAL_FILES[@]}; do
-  echo "DIR: ${EXTERNAL_FILES[$i]}"
   ARGS_INSTANCE+=(-B "${EXTERNAL_FILES[$i]}")
 done
 
