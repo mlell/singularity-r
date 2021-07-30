@@ -38,7 +38,10 @@ RStudio Server.
 1. Download one of the container image into its own directory. Do not rename the 
    containers from their original names `r-py.sif` or `rstudio.sif`, or you will
    have to adapt the helper scripts.
-2. Execute `singularity run r-py.sif setup` or `singularity run rstudio.sif setup`.
+2. Change working directory to the container folder and execute 
+  
+       singularity run -B "$PWD" --pwd "$PWD" CONTAINERNAME.sif setup
+       
    This will copy several helper scripts to the same directory as the container.
    Once this is done, you can run several different projects using the same 
    container.
