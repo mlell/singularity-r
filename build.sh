@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # Build the Singularity container
+set -ue
 
-singularity build r-py.sif Singularity-r
-singularity build rstudio.sif Singularity-rstudio
+singularity build -F r-py.sif Singularity-r
+singularity build -F rstudio.sif Singularity-rstudio
