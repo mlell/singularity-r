@@ -25,7 +25,8 @@ section.
 
 ## How to obtain
 
-**Option 1:** If you trust me, download the image from the "Releases" section. The 
+**Option 1:** If you trust me, download the image from the 
+["Releases"](https://github.com/mlell/singularity-r/releases) section. The 
 commit on which the image is based is included as a container label.
 
 **Option 2:** Clone this repository and execute `sudo ./build.sh`. This calls 
