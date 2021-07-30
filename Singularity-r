@@ -1,5 +1,6 @@
-BootStrap: docker
-From: debian:sid
+BootStrap: debootstrap
+OSVersion: sid
+MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
 
 %labels
   Maintainer Moritz Lell
