@@ -150,7 +150,7 @@ From: debian:sid
 
 %runscript
   bash /usr/lib/container_commands/setup "$@"
-  if [ "$1" = "setup" ];
+  if [ "$1" = "setup" ]; then
     echo 
     echo "NOTE: Make sure the container SIF file is called 'r-py.sif'"
     echo "or adapt the scripts that were just created in the container"
