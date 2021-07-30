@@ -176,7 +176,7 @@ From: r-py.sif
 
   # Clean up
   rm -rf /var/lib/apt/lists/*
-
+  rm -rf /var/cache/apt/archives
 %environment
   export PATH=/usr/lib/rstudio-server/bin:${PATH}
 

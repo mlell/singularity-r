@@ -131,7 +131,7 @@ MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
 
   # Clean up
   rm -rf /var/lib/apt/lists/*
-
+  rm -rf /var/cache/apt/archives
 
   # Write the current git commit as label
   echo "git_commit $(cat /commit)" >> "$SINGULARITY_LABELS"
