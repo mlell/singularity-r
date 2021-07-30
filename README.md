@@ -2,65 +2,78 @@
 
 [![GitHub License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-Singularity image for [R].
+Singularity images for R, Python 3 and RStudio Server.
 
-An R image with several libraries, aimed to help in reproducibly writing research
-scripts in the area of breeding research and quantitative genetics.
+These images can be used to improve reproducibility in producing analyses with R and
+Python. 
 
-## Build
+## Reproducible file paths
 
-You can build a local Singularity image named `singularity-r.simg` with:
+The containers are accompanied by helper scripts that make your project available at
+the path `/proj`, regardless of where the files lie on your machine. This way, using
+absolute paths does not lead to reproducibility issues. So, if you create your analyis,
+be sure to refer to a file with a path starting with
 
-```sh
-sudo singularity build singularity-r.simg Singularity
-```
+    /proj/PATH/TO/YOUR/FILE
 
+The directory `/proj` will be translated to your project root directory. The section 
+"How to obtain" describes how to set your project root directory.
+
+A possibility to include external files and folders is also available which enables
+to clearly document the dependencies of your work. It is also described in the next
+section.
+
+## How to obtain
+
+**Option 1:** If you trust me, download the image from the "Releases" section. The 
+commit on which the image is based is included as a container label.
+
+**Option 2:** Clone this repository and execute `sudo ./build.sh`. This calls 
+`singularity build` to produce two versions of the container, with and without
+RStudio Server. 
 
 ## Run
 
-### R
+1. Download one of the container image into its own directory. Do not rename the 
+   containers from their original names `r-py.sif` or `rstudio.sif`, or you will
+   have to adapt the helper scripts.
+2. Execute `singularity run r-py.sif setup` or `singularity run rstudio.sif setup`.
+   This will copy several helper scripts to the same directory as the container.
+   Once this is done, you can run several different projects using the same 
+   container.
+3. Change the working directory to the main folder of the analysis. Run
 
-The `R` command is launched using the default run command:
+       /PATH/TO/CONTAINER/createproject
 
-```sh
-singularity run singularity-r.simg
-```
+   This will copy a script into your project directory that contains the link to
+   the used container and enables you to define external files and folders that
+   shall be provided to the apps inside the container. 
 
-or as an explicit app:
+   Instead of an absolute path, you can also provide a relative path, for 
+   example if you place the container in a subfolder of your project.
+4. To start RStudio Server, change to your project directory and run the script
 
-```sh
-singularity run --app R singularity-r.simg
-```
+       ./rstudio start
+ 
+   There are several other functions. List them using `./rstudio --help`
 
-Example:
+   To run other programs from within the container, if you use `rstudio.sif`, run
+ 
+       ./rstudio exec COMMAND ARGS....
 
-```console
-$ singularity run --app R singularity-r.simg --version
-R version 3.4.3 (2017-11-30) -- "Kite-Eating Tree"
-Copyright (C) 2017 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+   or if you use `r-py.sif`, run
 
-R is free software and comes with ABSOLUTELY NO WARRANTY.
-You are welcome to redistribute it under the terms of the
-GNU General Public License versions 2 or 3.
-For more information about these matters see
-http://www.gnu.org/licenses/.
-```
+       ./cexec COMMAND ARGS...
 
-### Rscript
 
-The `Rscript` command is launched as an explicit app:
 
-```sh
-singularity run --app Rscript singularity-r.simg
-```
+## Build Reproducibility
 
-Example:
+The container uses [snapshot.debian.org](https://snapshot.debian.org/)
+as a mirror, so the software versions should not differ between different builds of
+this container, given it is based on the same commit of this repository. The snapshot
+timestamp is included in the `MirrorURL:` line of the file `Singularity-r`.
 
-```console
-$ singularity run --app Rscript singularity-r.simg --version
-R scripting front-end version 3.4.3 (2017-11-30)
-```
 
 ## Contents
 
@@ -69,7 +82,12 @@ and libraries:
 
   * R
   * Python + libpython headers for package compilation
+  * vim, emacs-nox, imagemagick, git 
   * Library headers inspired by CRAN SystemRequirements fields:
+     - C++ Boost
+       * [Pseudo-package as a replacement](https://packages.debian.org/de/sid/r-cran-bh)
+         for the R "BH" package to avoid reinstallation of Boost by R's `install.packages()`
+         function.
      - for tidyverse: libcairo, libxml
      - linear algebra: libarmadillo
      - netCDF and HDF files (CRAN packages: netcdf4, sf, gdal,...)
@@ -101,11 +119,10 @@ and libraries:
      - Grid computing scheduler:
          - libzmq3
          - libopenmpi
-     - DBMS:                   libpq 
+     - PostgreSQL:              libpq 
 
 ## License
 
 The code is available as open source under the terms of the [MIT License].
 
-[R]: https://www.r-project.org/
 [MIT License]: http://opensource.org/licenses/MIT
