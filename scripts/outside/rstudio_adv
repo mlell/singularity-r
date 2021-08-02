@@ -169,6 +169,7 @@ create(){
 #
 get_instance_by_id(){
   local status
+  unset pidfile rundir PID instancename address hostname tmpdir
   if [ "${1-}" = "-r" ]; then
     status="running"
     shift
@@ -184,6 +185,7 @@ get_instance_by_id(){
     msg "Container ID must be alphanumeric and not empty" 
     exit 1
   fi
+  declare -g pidfile rundir
   pidfile="$DIR_RUN/${id}.pid"
   rundir="$DIR_RUN/${id}.rstudio"
   if [ ! -d "$rundir" ]; then 
@@ -310,7 +312,7 @@ make_temp(){
   fi
   
   # check if temp dir is empty
-  tmpcontent="$(ls -A "$tmpdir")"
+  local tmpcontent="$(ls -A "$tmpdir")"
   if [ ! -z "$tmpcontent" ]; then
     echo "Error: Temp dir '$tmpdir' is not empty"
     exit 1
@@ -320,7 +322,7 @@ make_temp(){
 
 start(){
   
-  logfile="/dev/null"
+  local logfile="/dev/null"
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --log)
@@ -366,6 +368,7 @@ start(){
   
 EOF
     echo -n "Do you want to set the RStudio password now? [y/N] " >&2
+    local answer
     read answer
     if [[ $answer =~ [yY] ]]; then
       rstudio_passwd
@@ -375,10 +378,10 @@ EOF
   fi
   
   # Create a temporary directory
-  tmpdir="$(make_temp)"
+  local tmpdir="$(make_temp)"
   
   #port=$("$thisdir/cexec" find_port "$address" "$port_min" "$port_max")
-  port=$(singularity -s exec "$CONTAINER" /usr/bin/find_port "$ADDRESS" "$port_min" "$port_max")
+  local port=$(singularity -s exec "$CONTAINER" /usr/bin/find_port "$ADDRESS" "$port_min" "$port_max")
   msg ""
   msg "Access RStudio Server on http://$ADDRESS:$port"
   msg ""
@@ -387,9 +390,9 @@ EOF
   msg "Call './rstudio passwd' to change the RStudio password."
   
   # Start Singularity instance
-  instancename="$(basename "$tmpdir")"
-  runfile="$DIR_RUN/${id}.pid"
-  rundir="$DIR_RUN/${id}.rstudio"
+  local instancename="$(basename "$tmpdir")"
+  local runfile="$DIR_RUN/${id}.pid"
+  local rundir="$DIR_RUN/${id}.rstudio"
   
   if [ ! -d "$rundir" ]; then
     create "$id";
@@ -422,8 +425,8 @@ EOF
     trap "echo caught SIGHUP" HUP
     
     # Save PID and other infos
-    pid=$BASHPID
-    hostname="$(uname -n)"
+    local pid=$BASHPID
+    local hostname="$(uname -n)"
     cat <<EOF >"$runfile"
 $pid
 $instancename
@@ -446,7 +449,7 @@ EOF
         --auth-none 0 \
         --server-daemonize=no \
         --auth-pam-helper rstudio_auth_file 
-    code=$?
+    local code=$?
     if [ ! $code = 0 ]; then
       msg "rserver exited with code $code"
     fi
