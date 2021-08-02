@@ -409,7 +409,7 @@ EOF
       -W "$tmpdir" \
       -B "$tmpdir:/var/run" \
       -B "$rundir/var-lib:/var/lib/rstudio-server" \
-      -B "$rundir/rstudio:$BIND_PROJECT_TO/.rstudio" \
+      -B "$rundir/rstudio:$BIND_PROJECT_TO/.local/share/rstudio" \
       "${ARGS_INSTANCE[@]}" \
       "$CONTAINER" \
       "$instancename"
