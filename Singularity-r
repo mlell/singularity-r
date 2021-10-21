@@ -72,7 +72,8 @@ From: debian-baseimage.sif
   export R_VERSION=4.0.4
 
   # Get dependencies
-  apt-get update
+  # Disable check for recent release file, as we build an old snapshot
+  apt-get update -o Acquire::Check-Valid-Until=false
   apt-get install -y --no-install-recommends \
     locales curl gpg dirmngr gpg-agent
 
@@ -84,7 +85,6 @@ From: debian-baseimage.sif
   export LANG=en_US.UTF-8
 
   # Install R
-  apt-get update
   # Installed packages:
   # * R
   # * Python + libpython headers for package compilation

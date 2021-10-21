@@ -145,7 +145,7 @@ From: r-py.sif
   export RSTUDIO_VERSION=1.4.1717
 
   # Install RStudio Server
-  apt-get update
+  apt-get update -o Acquire::Check-Valid-Until=false
   apt-get install -y --no-install-recommends \
     ca-certificates \
     wget \
