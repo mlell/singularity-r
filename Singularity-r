@@ -75,7 +75,7 @@ MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
   # Get dependencies
   apt-get update
   apt-get install -y --no-install-recommends \
-    locales curl gpg dirmngr gpg-agent libopenblas-dev
+    locales curl gpg dirmngr gpg-agent
 
   # Configure default locale
   echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
