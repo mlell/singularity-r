@@ -12,5 +12,8 @@ if [ -z "${DEBUG-}" ]; then
   fi 
 fi
 
+if [ ! -f debian-baseimage.sif ]; then 
+  singularity build -F debian-baseimage.sif Singularity-baseimage
+fi
 singularity build -F r-py.sif Singularity-r
 singularity build -F rstudio.sif Singularity-rstudio

@@ -1,6 +1,5 @@
-BootStrap: debootstrap
-OSVersion: sid
-MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
+BootStrap: localimage
+From: debian-baseimage.sif
 
 %labels
   Maintainer Moritz Lell

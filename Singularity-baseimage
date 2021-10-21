@@ -1,0 +1,25 @@
+BootStrap: debootstrap
+OSVersion: sid
+MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
+
+%labels
+  Maintainer Moritz Lell
+  git_repository https://github.com/mlell/singularity-r
+
+%help 
+
+  Debian base image, obtained from snapshot.debian.org to enable reproducible build
+
+%setup
+  
+  if [ -z "${DEBUG-}" ]; then
+    # make sure it doesn't fail
+    git status -s &>/dev/null
+    if [ ! "$(git status -s | wc -l)" = "0" ]; then
+      echo "Working dir dirty!" >&2
+      exit 1
+    fi 
+    git rev-parse HEAD >"$SINGULARITY_ROOTFS/commit"
+  fi
+
+
