@@ -1,6 +1,5 @@
-BootStrap: debootstrap
-OSVersion: sid
-MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
+BootStrap: localimage
+From: debian-baseimage.sif
 
 %labels
   Maintainer Moritz Lell
@@ -73,9 +72,10 @@ MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
   export R_VERSION=4.0.4
 
   # Get dependencies
-  apt-get update
+  # Disable check for recent release file, as we build an old snapshot
+  apt-get update -o Acquire::Check-Valid-Until=false
   apt-get install -y --no-install-recommends \
-    locales curl gpg dirmngr gpg-agent libopenblas-dev
+    locales curl gpg dirmngr gpg-agent
 
   # Configure default locale
   echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
@@ -85,7 +85,6 @@ MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
   export LANG=en_US.UTF-8
 
   # Install R
-  apt-get update
   # Installed packages:
   # * R
   # * Python + libpython headers for package compilation
