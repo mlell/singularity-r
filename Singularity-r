@@ -125,7 +125,7 @@ From: debian-baseimage.sif
     libpython3-all-dev python3-pip \
     libcurl4-openssl-dev \
     libssl-dev \
-    nano   graphviz \
+    man  nano   graphviz \
     procps  imagemagick \
     jags less  \
     libxml2-dev \
