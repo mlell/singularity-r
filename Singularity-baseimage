@@ -24,4 +24,9 @@ MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
     echo "debug" > "$SINGULARITY_ROOTFS/commit"
   fi
 
+%post
+
+ rm -rf /var/lib/apt/*
+ rm -rf /var/cache/apt/*
+
 

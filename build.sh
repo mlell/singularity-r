@@ -12,8 +12,14 @@ if [ ! -z "${DEBUG-}" ]; then
   fi 
 fi
 
+sgb(){
+  singularity build -F \
+    -B "$PWD/vca:/var/cache/apt" \
+    -B "$PWD/vla:/var/lib/apt" \
+    "$1" "$2" # Recipe and output SIF file
+}
 if [ ! -f debian-baseimage.sif ]; then 
   singularity build -F debian-baseimage.sif Singularity-baseimage
 fi
-singularity build -F r-py.sif Singularity-r
-singularity build -F rstudio.sif Singularity-rstudio
+sgb r-py.sif Singularity-r
+sgb rstudio.sif Singularity-rstudio

@@ -170,8 +170,8 @@ From: debian-baseimage.sif
   ln -s python3 /usr/bin/python
 
   # Clean up
-  rm -rf /var/lib/apt/lists/*
-  rm -rf /var/cache/apt/archives
+  umount /var/lib/apt
+  umount /var/cache/apt
 
   # Write the current git commit as label
   echo "git_commit $(cat /commit)" >> "$SINGULARITY_LABELS"
