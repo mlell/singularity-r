@@ -3,7 +3,7 @@
 # Build the Singularity container
 set -ue
 
-if [ -z "${DEBUG-}" ]; then
+if [ ! -z "${DEBUG-}" ]; then
   # make sure it doesn't fail
   git status -s &>/dev/null
   if [ ! "$(git status -s | wc -l)" = "0" ]; then
