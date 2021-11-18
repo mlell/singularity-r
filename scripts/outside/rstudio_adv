@@ -102,7 +102,7 @@ list(){
     local id="${f:${#DIR_RUN}:-8}" # strip off directory name and ".pid"
     local id="${id:1}" # strip off leading "/"
 
-    get_instance_by_id "$id"   # -> sets id, pidfile, PID, instancename, address, hostname
+    get_instance_by_id "$id"   # -> sets id, pidfile, runfile, PID, instancename, address, hostname, tmpdir
 
     local status=""
     if [ -z "$PID" ]; then
@@ -165,7 +165,7 @@ create(){
 }
 
 # Returns values by SETTING GLOBAL VARIABLES:
-#   pidfile, rundir, PID, instancename, address, hostname
+#   pidfile, rundir, PID, instancename, address, hostname, tmpdir
 #
 get_instance_by_id(){
   local status
@@ -254,7 +254,7 @@ delete(){
     fi
   fi
   local id="${1}"
-  get_instance_by_id -s "$id"   # -> sets id, pidfile, rundir, PID, instancename, address, hostname
+  get_instance_by_id -s "$id"   # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
 
   rm -r "$rundir"
   rm "$pidfile"
@@ -280,7 +280,7 @@ shell(){
     exit 1
   fi
 
-  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname
+  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
 
   if [ -z "$instancename" ]; then
     msg "Instance \"$id\" is not running."
@@ -498,7 +498,7 @@ stop(){
 
   local id="${1}"
 
-  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname
+  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
 
   # singularity instance stop "$instancename"
   kill $PID
