@@ -82,7 +82,7 @@ test "$wd" = "/proj/subdir"
 cd ..
 
 #
-################ RStudio: start, stop, restart 
+################ RStudio: start, list, stop, restart 
 #
 
 # Set RStudio passwort "test"
@@ -92,10 +92,20 @@ EOF
 ./rstudio start test
 # wait until RStudio ist started
 sleep 5s 
+
+mkdir listtest
+cd listtest
+n="$(../rstudio list | wc -l)"
+test "$n" = 2 # header and 1 running instance
+cd ..
+  
+
 ./rstudio stop test
 sleep 5s
 ./rstudio start test
 
+sleep 5s
+./rstudio stop test
 
 echo "All tests passed!"
 

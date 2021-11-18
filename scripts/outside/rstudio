@@ -17,7 +17,7 @@ export CONTAINER_DIR="$thisdir"
 
 # ===== Default settings for RStudio Server startscript ======
 BIND_PROJECT_TO="/proj"    # Where project directory is mounted inside of the container
-DIR_RUN=".run/rstudio-container"
+DIR_RUN="$PROJECT_DIR/.run/rstudio-container"
 ADDRESS="127.0.0.1"
 port_min=8000
 port_max=8100
