@@ -1,3 +1,7 @@
 *.sif
 *.swp
 
+# Cached apt lists and packages for faster rebuild
+/vca/
+/vla/
+

@@ -57,7 +57,7 @@ From: debian-baseimage.sif
   cp_container user-launcher-r user-launcher
   cp_container setup setup
   
-  if [ -z "${DEBUG-}" ]; then
+  if [ ! -z "${DEBUG-}" ]; then
     # make sure it doesn't fail
     git status -s &>/dev/null
     if [ ! "$(git status -s | wc -l)" = "0" ]; then
@@ -65,6 +65,8 @@ From: debian-baseimage.sif
       exit 1
     fi 
     git rev-parse HEAD >"$SINGULARITY_ROOTFS/commit"
+  else
+    echo "debug" > "$SINGULARITY_ROOTFS/commit"
   fi
 
 %post
@@ -123,7 +125,7 @@ From: debian-baseimage.sif
     libpython3-all-dev python3-pip \
     libcurl4-openssl-dev \
     libssl-dev \
-    nano   graphviz \
+    man  nano   graphviz \
     procps  imagemagick \
     jags less  \
     libxml2-dev \
@@ -168,8 +170,8 @@ From: debian-baseimage.sif
   ln -s python3 /usr/bin/python
 
   # Clean up
-  rm -rf /var/lib/apt/lists/*
-  rm -rf /var/cache/apt/archives
+  umount /var/lib/apt
+  umount /var/cache/apt
 
   # Write the current git commit as label
   echo "git_commit $(cat /commit)" >> "$SINGULARITY_LABELS"

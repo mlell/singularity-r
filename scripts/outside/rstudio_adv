@@ -102,7 +102,7 @@ list(){
     local id="${f:${#DIR_RUN}:-8}" # strip off directory name and ".pid"
     local id="${id:1}" # strip off leading "/"
 
-    get_instance_by_id "$id"   # -> sets id, pidfile, PID, instancename, address, hostname
+    get_instance_by_id "$id"   # -> sets id, pidfile, runfile, PID, instancename, address, hostname, tmpdir
 
     local status=""
     if [ -z "$PID" ]; then
@@ -165,7 +165,7 @@ create(){
 }
 
 # Returns values by SETTING GLOBAL VARIABLES:
-#   pidfile, rundir, PID, instancename, address, hostname
+#   pidfile, rundir, PID, instancename, address, hostname, tmpdir
 #
 get_instance_by_id(){
   local status
@@ -254,7 +254,7 @@ delete(){
     fi
   fi
   local id="${1}"
-  get_instance_by_id -s "$id"   # -> sets id, pidfile, rundir, PID, instancename, address, hostname
+  get_instance_by_id -s "$id"   # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
 
   rm -r "$rundir"
   rm "$pidfile"
@@ -280,7 +280,7 @@ shell(){
     exit 1
   fi
 
-  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname
+  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
 
   if [ -z "$instancename" ]; then
     msg "Instance \"$id\" is not running."
@@ -323,6 +323,7 @@ make_temp(){
 start(){
   
   local logfile="/dev/null"
+  local fg="false"
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --log)
@@ -340,9 +341,13 @@ start(){
       msg ""
       msg "Options:"
       msg "--log FILE  Write log output to this file. Default: no log"
+      msg "--fg        Keep the server running in the foreground. This"
+      msg "            disables effects of --log. Status output is forwarded"
+      msg "            to the terminal."
       msg ""
       exit 0
       ;;
+      --fg) fg=true; shift; ;;
       --) shift; break; ;;
       *) break; ;;
     esac
@@ -350,14 +355,7 @@ start(){
 
   local id="${1-default}"
 
-  if [ ! -d "$DIR_RUN/${id}.rstudio" ]; then
-    msg "Creating instance \"$id\""
-    create "$id"
-  fi
-
-  get_instance_by_id -s "$id"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname
-
-  msg "Starting instance \"$id\""
+  cd "$PROJECT_DIR" # Server always starts from the project dir.
 
   if [[ ! -e ".rstudio-passwd" || 
     "$(cat ".rstudio-passwd" | wc -l)" = 0 ]]; then
@@ -376,19 +374,41 @@ EOF
       exit 1
     fi
   fi
+
   
+  if [ "$fg" = "true" ]; then
+    start_rstudio "$id"
+  else
+    start_rstudio "$id" < /dev/null 2>&1 >"$logfile" &
+    disown $!
+  fi
+}
+
+# id: name of the RStudio instance
+start_rstudio(){
+  local id="$1"
+  if [ ! -d "$DIR_RUN/${id}.rstudio" ]; then
+    msg "Creating instance \"$id\""
+    create "$id"
+  fi
+
+  get_instance_by_id -s "$id"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
+
   # Create a temporary directory
   local tmpdir="$(make_temp)"
-  
-  #port=$("$thisdir/cexec" find_port "$address" "$port_min" "$port_max")
   local port=$(singularity -s exec "$CONTAINER" /usr/bin/find_port "$ADDRESS" "$port_min" "$port_max")
-  msg ""
-  msg "Access RStudio Server on http://$ADDRESS:$port"
-  msg ""
-  msg "To log in to RStudio, use your user name and the"
-  msg "RStudio password for this project."
-  msg "Call './rstudio passwd' to change the RStudio password."
-  
+
+  # Delete the temporary directory after the end of the script
+  cleanup(){
+    singularity instance stop "$instancename"
+    if [ -d "$tmpdir" ]; then rm -rf "$tmpdir"; fi
+    if [ -f "$runfile" ]; then echo > "$runfile"; fi
+  }
+  trap cleanup EXIT
+  trap "echo caught SIGHUP" HUP
+
+  msg "Starting instance \"$id\""
+
   # Start Singularity instance
   local instancename="$(basename "$tmpdir")"
   local runfile="$DIR_RUN/${id}.pid"
@@ -404,60 +424,54 @@ EOF
   mkdir -p "$rundir/var-lib"
   mkdir -p "$rundir/rstudio"
 
-  (
-    singularity instance start \
-      -W "$tmpdir" \
-      -B "$tmpdir:/var/run" \
-      -B "$rundir/var-lib:/var/lib/rstudio-server" \
-      -B "$rundir/rstudio:$BIND_PROJECT_TO/.local/share/rstudio" \
-      "${ARGS_INSTANCE[@]}" \
-      "$CONTAINER" \
-      "$instancename"
-    
-    # Delete the temporary directory after the end of the script
-    cleanup(){
-      singularity instance stop "$instancename"
-      if [ -d "$tmpdir" ]; then rm -rf "$tmpdir"; fi
-      if [ -f "$runfile" ]; then echo > "$runfile"; fi
-    }
+  singularity instance start \
+    -W "$tmpdir" \
+    -B "$tmpdir:/var/run" \
+    -B "$rundir/var-lib:/var/lib/rstudio-server" \
+    -B "$rundir/rstudio:$BIND_PROJECT_TO/.local/share/rstudio" \
+    "${ARGS_INSTANCE[@]}" \
+    "$CONTAINER" \
+    "$instancename"
 
-    trap cleanup EXIT
-    trap "echo caught SIGHUP" HUP
-    
-    # Save PID and other infos
-    local pid=$BASHPID
-    local hostname="$(uname -n)"
-    cat <<EOF >"$runfile"
+  # Save PID and other infos
+  local pid=$BASHPID
+  local hostname="$(uname -n)"
+  cat <<EOF >"$runfile"
 $pid
 $instancename
 $ADDRESS:$port
 $hostname
 $tmpdir
 EOF
-  
-    # log error code
-    set +e 
 
-    SINGULARITYENV_RSTUDIO_PASSWORD_FILE="$BIND_PROJECT_TO/.rstudio-passwd" \
-    singularity exec \
-      "${ARGS_EXEC[@]}" \
-      --pwd "$BIND_PROJECT_TO" \
-      "instance://$instancename" \
-        rserver \
-        --www-address $ADDRESS \
-        --www-port $port \
-        --auth-none 0 \
-        --server-daemonize=no \
-        --auth-pam-helper rstudio_auth_file 
-    local code=$?
-    if [ ! $code = 0 ]; then
-      msg "rserver exited with code $code"
-    fi
-    return $code
+  # ====== Start RStudio server ==================
 
-    ) </dev/null &>"$logfile" &
-    disown $!
-  
+  msg ""
+  msg "Access RStudio Server on http://$ADDRESS:$port"
+  msg ""
+  msg "To log in to RStudio, use your user name and the"
+  msg "RStudio password for this project."
+  msg "Call './rstudio passwd' to change the RStudio password."
+
+  # log error code
+  set +e 
+
+  SINGULARITYENV_RSTUDIO_PASSWORD_FILE="$BIND_PROJECT_TO/.rstudio-passwd" \
+  singularity exec \
+    "${ARGS_EXEC[@]}" \
+    --pwd "$BIND_PROJECT_TO" \
+    "instance://$instancename" \
+      rserver \
+      --www-address $ADDRESS \
+      --www-port $port \
+      --auth-none 0 \
+      --server-daemonize=no \
+      --auth-pam-helper rstudio_auth_file 
+  local code=$?
+  if [ ! $code = 0 ]; then
+    msg "rserver exited with code $code"
+  fi
+  return $code
 }
 
 stop(){
@@ -498,10 +512,10 @@ stop(){
 
   local id="${1}"
 
-  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname
-
+  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
   # singularity instance stop "$instancename"
-  kill $PID
+
+  kill "$PID"
 
 }
 

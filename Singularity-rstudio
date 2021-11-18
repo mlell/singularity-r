@@ -175,8 +175,9 @@ From: r-py.sif
   echo "OMP_NUM_THREADS=1" >> /etc/R/Renviron.site
 
   # Clean up
-  rm -rf /var/lib/apt/lists/*
-  rm -rf /var/cache/apt/archives
+  umount /var/lib/apt
+  umount /var/cache/apt
+
 %environment
   export PATH=/usr/lib/rstudio-server/bin:${PATH}
 
