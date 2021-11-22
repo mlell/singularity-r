@@ -125,6 +125,67 @@ and libraries:
          - libopenmpi
      - PostgreSQL:              libpq 
 
+## OpenBLAS
+
+OpenBLAS provides large speedups and parallel computation of linear algebra 
+operations. This package does not include the OpenBLAS libraries, as we have
+experienced problems when doing calculations on older machines (Skylake CPUs,
+[OpenBLAS#3454](https://github.com/xianyi/OpenBLAS/issues/3454)). You can add 
+the OpenBLAS libraries yourself by binding them into the container, masking
+the BLAS libraries in the container. 
+
+**Step 1:** Follow the steps in section "Run" (except the final step 4, which
+is not nessecary for this)
+
+**Step 2:** Download and compile an OpenBLAS version. Here, we download OpenBLAS
+into a folder directly in your project directory that is available as `/proj`
+inside the container. Other folders are also possible, but we recommend you
+put it somewhere inside the project directory or the container directory.
+
+```sh
+# Download an openblas version
+git clone -b v0.3.18 https://github.com/xianyi/OpenBLAS
+cd OpenBLAS
+# enter a shell inside the container. For the RStudio container, replace
+# "cexec" by "rstudio"
+../cexec exec bash 
+make
+# PREFIX is the install path, it must be specific for each machine. 
+# Other than that, you can choose it freely
+make install PREFIX="inst/$(hostname)" 
+```
+
+You can also try to call "make TARGET=GENERIC" so that you do not need
+a special version for each machine you run on. But that might slow down
+you later calculations. You will have to test the effect yourself. This
+is how you would do it.
+
+```sh
+make TARGET=GENERIC
+make install PREFIX=inst   # PREFIX is the install path, you can choose
+```
+
+**Step 3:** Add to the `EXTERNAL_FILES` variable in the `cexec` or `rstudio`
+script, respectively, to add the OpenBLAS libraries inside the container:
+
+```sh
+# After the EXTERNAL_FILES variable has been defined
+openblaspath="$thisdir/OpenBLAS/inst/$(hostname)"
+if [ -d "$openblaspath" ]; then
+  EXTERNAL_FILES+=( 
+    "$(readlink -f "${openblaspath}/lib/libopenblas.so:/usr/lib/R/lib/libblas.so.3" )
+fi
+```
+
+(The needed pathof the library inside the container is set by
+the file `/usr/lib/R/etc/ldpaths` and environment variable 
+`R_LD_LIBRARY_PATH`. The name was derived by running `ldd /usr/lib/R/bin/exec/R`.) 
+
+Note that in this example, the step 2 must be repeated on every host that the
+container is used on (except if the approach in the last paragraph of step 2
+is followed, but this is not tested). Be sure to test that you get correct
+results from OpenBLAS in either case.
+
 ## License
 
 The code is available as open source under the terms of the [MIT License].
