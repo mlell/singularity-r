@@ -1,7 +1,7 @@
 # builds on top of singularty rstudio 
 # done: add vcftools
+# done: add jupyterlab
 # todo: add flexibility to choose python version.
-# todo: add jupyterlab and  anaconda.
 # todo: add other essentials for basic biological studies viz. galaxy, GATK and more
 
 BootStrap: localimage
@@ -13,11 +13,17 @@ From: rstudio.sif
 %help
 # Hope/to check - for the base image packages, help section will be carried forward.	
 %post
+	#vcftools
 	git clone https://github.com/vcftools/vcftools.git
 	cd vcftools
 	./autogen.sh
 	./configure
 	make
 	make install
+	
+	#jupyter-lab
+	pip install jupyterlab 
+	#todo: something to stat this with ./rstudio prompt!
+
 %apprun vcftools
 	exec vcftools "${@}"
