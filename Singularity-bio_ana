@@ -1,0 +1,66 @@
+# builds on top of singularty rstudio 
+# done: add vcftools
+# done: add jupyterlab
+# done: add samtools package, blast
+# todo: add flexibility to choose python version.
+# todo: add other essentials for basic biological studies viz. galaxy, GATK and more
+
+BootStrap: localimage
+From: rstudio.sif
+
+%labels
+	Maintainer Abhi
+	RStudio_Version 1.4.1717 # from base image
+%help
+# Hope/to check - for the base image packages, help section will be carried forward.	
+%post
+	#jupyter-lab
+	pip install jupyterlab 
+
+	#make directory for downloading temporary files	
+	mkdir tmp_download
+	cd tmp_download
+	
+	#vcftools
+	git clone https://github.com/vcftools/vcftools.git
+	mv vcftools /opt 
+	cd /opt/vcftools
+	./autogen.sh
+	./configure
+	make
+	make install
+	cd /tmp_download
+	
+	#blast
+	wget  https://ftp.ncbi.nlm.nih.gov/blast/executables/LATEST/ncbi-blast-2.13.0+-x64-linux.tar.gz
+	tar zxvpf ncbi-blast-2.13.0+-x64-linux.tar.gz
+	mv ncbi-blast-2.13.0+ /opt/blast
+	mkdir /opt/blast/blastdb
+	#todo: something to stat this with ./rstudio prompt!
+	
+	#samtools, bcftools and hstlib
+	wget https://github.com/samtools/samtools/releases/download/1.15/samtools-1.15.tar.bz2
+	wget https://github.com/samtools/bcftools/releases/download/1.15/bcftools-1.15.tar.bz2
+	wget https://github.com/samtools/htslib/releases/download/1.15/htslib-1.15.tar.bz2
+	
+	for f in samtools-1.15 bcftools-1.15 htslib-1.15
+	do
+		tar -xvf "$f.tar.bz2"
+		cd "$f"
+		./configure --prefix="/opt/$f"
+		make
+		make install
+		echo "done istalling $f"
+		cd ..
+	done
+	
+	# clean the downloads
+	rm -rf /tmp_download
+	
+%environment
+	export PATH=/opt/blast/bin:${PATH}
+	export BLASTDB=/opt/blast/blastdb
+	export PATH=/opt/samtools-1.15/bin:${PATH}
+	export PATH=/opt/bcftools-1.15/bin:${PATH} 
+	export PATH=/opt/hstlib-1.15/bin:${PATH} 
+	#open rstudio and add these lines to .bshrc file in the /proj folder
