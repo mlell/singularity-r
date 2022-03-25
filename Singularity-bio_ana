@@ -1,6 +1,7 @@
 # builds on top of singularty rstudio 
 # done: add vcftools
 # done: add jupyterlab
+# done: add samtools package, blast
 # todo: add flexibility to choose python version.
 # todo: add other essentials for basic biological studies viz. galaxy, GATK and more
 
@@ -63,8 +64,3 @@ From: rstudio.sif
 	export PATH=/opt/bcftools-1.15/bin:${PATH} 
 	export PATH=/opt/hstlib-1.15/bin:${PATH} 
 	#open rstudio and add these lines to .bshrc file in the /proj folder
-	
-%apprun vcftools
-	exec vcftools "${@}"
-%apprun jupyter-lab
-	exec jupyter-lab "${@}"
