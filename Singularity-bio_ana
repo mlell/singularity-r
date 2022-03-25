@@ -13,18 +13,57 @@ From: rstudio.sif
 %help
 # Hope/to check - for the base image packages, help section will be carried forward.	
 %post
+	#jupyter-lab
+	pip install jupyterlab 
+
+	#make directory for downloading temporary files	
+	mkdir tmp_download
+	cd tmp_download
+	
 	#vcftools
 	git clone https://github.com/vcftools/vcftools.git
-	cd vcftools
+	mv vcftools /opt 
+	cd /opt/vcftools
 	./autogen.sh
 	./configure
 	make
 	make install
+	cd /tmp_download
 	
-	#jupyter-lab
-	pip install jupyterlab 
+	#blast
+	wget  https://ftp.ncbi.nlm.nih.gov/blast/executables/LATEST/ncbi-blast-2.13.0+-x64-linux.tar.gz
+	tar zxvpf ncbi-blast-2.13.0+-x64-linux.tar.gz
+	mv ncbi-blast-2.13.0+ /opt/blast
+	mkdir /opt/blast/blastdb
 	#todo: something to stat this with ./rstudio prompt!
-
+	
+	#samtools, bcftools and hstlib
+	wget https://github.com/samtools/samtools/releases/download/1.15/samtools-1.15.tar.bz2
+	wget https://github.com/samtools/bcftools/releases/download/1.15/bcftools-1.15.tar.bz2
+	wget https://github.com/samtools/htslib/releases/download/1.15/htslib-1.15.tar.bz2
+	
+	for f in samtools-1.15 bcftools-1.15 htslib-1.15
+	do
+		tar -xvf "$f.tar.bz2"
+		cd "$f"
+		./configure --prefix="/opt/$f"
+		make
+		make install
+		echo "done istalling $f"
+		cd ..
+	done
+	
+	# clean the downloads
+	rm -rf /tmp_download
+	
+%environment
+	export PATH=/opt/blast/bin:${PATH}
+	export BLASTDB=/opt/blast/blastdb
+	export PATH=/opt/samtools-1.15/bin:${PATH}
+	export PATH=/opt/bcftools-1.15/bin:${PATH} 
+	export PATH=/opt/hstlib-1.15/bin:${PATH} 
+	#open rstudio and add these lines to .bshrc file in the /proj folder
+	
 %apprun vcftools
 	exec vcftools "${@}"
 %apprun jupyter-lab
