@@ -117,6 +117,7 @@ From: debian-baseimage.sif
   #   - Glyph rendering and Unicode:
   #       harfbuzz libicu 
   #   - Compression:            zlib1g bzip zstd zip
+  #   - Nonlinear Optimizationn: libnlopt0
   #   - Systems Biology ML:     libsbml5
   #   - GNU Scientific Library: gsl
   #   - Cryptography:           libsodium
@@ -153,6 +154,7 @@ From: debian-baseimage.sif
     libtiff-dev libjpeg-dev librsvg2-dev libpng-dev \
     libharfbuzz-dev libicu-dev\
     zlib1g-dev libbz2-dev libzstd-dev libzip-dev\
+    libnlopt-dev \
     libsbml5-dev \
     libgsl-dev \
     libsodium-dev \
