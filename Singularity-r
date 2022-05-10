@@ -77,6 +77,11 @@ From: debian-baseimage.sif
   # overwrite possible host LC_* variables when called without --containenv or --contain
   export LC_ALL=en_US.UTF-8 
 
+  # Disable renv sandboxing where a project is decoupled from system-wide installed libraries. 
+  # This is not needed as the system libraries are frozen in the container and we install an
+  # adapter package that mimics the R BH package and links to system libraries. That would not
+  # work if the system libraries are not used by renv
+  export RENV_CONFIG_SANDBOX_ENABLED=FALSE
 %post
   # Software versions
   export R_VERSION=4.0.4
