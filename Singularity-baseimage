@@ -1,6 +1,6 @@
 BootStrap: debootstrap
 OSVersion: sid
-MirrorURL: https://snapshot.debian.org/archive/debian/20210730T031307Z/
+MirrorURL: https://snapshot.debian.org/archive/debian/20220501T085721Z/
 
 %labels
   Maintainer Moritz Lell
