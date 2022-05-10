@@ -188,6 +188,16 @@ From: debian-baseimage.sif
   # Set default python version
   ln -s python3 /usr/bin/python
 
+
+  # RStudio server settings
+
+  # Do not suspend idle sessions (resuming takes very long for big variables)
+  cat >> /etc/rstudio/rsession.conf <<EOF
+ 
+  session-timeout-minutes=0
+  EOF
+  
+
   # Clean up
   umount /var/lib/apt
   umount /var/cache/apt
