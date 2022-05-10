@@ -69,10 +69,22 @@ From: debian-baseimage.sif
     echo "debug" > "$SINGULARITY_ROOTFS/commit"
   fi
 
+%environment
+
+  export LANGUAGE=en_US
+  export LANG=en_US.UTF-8
+
+  # overwrite possible host LC_* variables when called without --containenv or --contain
+  export LC_ALL=en_US.UTF-8 
+
 %post
   # Software versions
   export R_VERSION=4.0.4
+  export LANGUAGE=en_US
+  export LANG=en_US.UTF-8
 
+  # overwrite possible host LC_* variables when called without --containenv or --contain
+  export LC_ALL=en_US.UTF-8 
   # Get dependencies
   # Disable check for recent release file, as we build an old snapshot
   apt-get update -o Acquire::Check-Valid-Until=false
@@ -81,10 +93,9 @@ From: debian-baseimage.sif
 
   # Configure default locale
   echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
-  locale-gen en_US.utf8
-  /usr/sbin/update-locale LANG=en_US.UTF-8
-  export LC_ALL=en_US.UTF-8
-  export LANG=en_US.UTF-8
+  locale-gen -a
+#  /usr/sbin/update-locale LANG=en_US.UTF-8
+
 
   # Install R
   # Installed packages:
