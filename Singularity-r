@@ -47,15 +47,6 @@ From: debian-baseimage.sif
 
 %setup
   set -ue
-  mkdir "$SINGULARITY_ROOTFS/usr/lib/container_commands"
-  cp_container(){
-    install -Dv scripts/outside/"$1" "${SINGULARITY_ROOTFS}/usr/lib/container_commands/$2"
-  }
-  cp_container cexec cexec
-  cp_container functions-r.sh functions-r.sh
-  cp_container createproject-r createproject
-  cp_container user-launcher-r user-launcher
-  cp_container setup setup
   
   if [ ! -z "${DEBUG-}" ]; then
     # make sure it doesn't fail
@@ -82,9 +73,13 @@ From: debian-baseimage.sif
   # adapter package that mimics the R BH package and links to system libraries. That would not
   # work if the system libraries are not used by renv
   export RENV_CONFIG_SANDBOX_ENABLED=FALSE
+
+  export OMP_NUM_THREADS=1
+
+
+
 %post
   # Software versions
-  export R_VERSION=4.0.4
   export LANGUAGE=en_US
   export LANG=en_US.UTF-8
 
@@ -99,7 +94,6 @@ From: debian-baseimage.sif
   # Configure default locale
   echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
   locale-gen -a
-#  /usr/sbin/update-locale LANG=en_US.UTF-8
 
 
   # Install R
@@ -215,17 +209,7 @@ From: debian-baseimage.sif
 %apprun python
   exec python "${@}"
 
-%environment
-  export OMP_NUM_THREADS=1
 
-%runscript
-  bash /usr/lib/container_commands/setup "$@"
-  if [ "$1" = "setup" ]; then
-    echo 
-    echo "NOTE: Make sure the container SIF file is called 'r-py.sif'"
-    echo "or adapt the scripts that were just created in the container"
-    echo "directory!"
-  fi
 
 
 

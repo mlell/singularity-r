@@ -4,70 +4,76 @@
 
 Singularity images for R, Python 3 and RStudio Server.
 
-These images can be used to improve reproducibility in producing analyses with R and
-Python. 
+These images can be used to improve reproducibility in producing analyses with
+R and Python. 
 
-## Reproducible file paths
+## What is a project folder
 
-The containers are accompanied by helper scripts that make your project available at
-the path `/proj`, regardless of where the files lie on your machine. This way, using
-absolute paths does not lead to reproducibility issues. So, if you create your analyis,
-be sure to refer to a file with a path starting with
+This projects works with the idea of a **project folder**. That is a folder
+that you want to be a self-contained analysis, so all the files needed for the
+analysis are in that folder. When the container is started, you will see the 
+files of the project folder under the the path `/proj`. Files outside of the 
+project folder will not be visible from inside the container! 
 
-    /proj/PATH/TO/YOUR/FILE
+This way, using absolute paths does not lead to reproducibility issues.
+Regardless on where the project folder lies on your computer, from inside it
+will always be found in the folder `/proj`. So, if you move your analysis to
+another computer, it can still be run without changing file paths in the
+analysis.
 
-The directory `/proj` will be translated to your project root directory. The section 
-"How to obtain" describes how to set your project root directory.
+A possibility to include files and folders that are outside of the project 
+folder is also available which enables you to clearly document additional 
+dependencies of your work.
 
-A possibility to include external files and folders is also available which enables
-to clearly document the dependencies of your work. It is also described in the next
-section.
+## Downloading the container
 
-## How to obtain
+**Option 1:** If you trust me, download the latest archive from the 
+["Releases"](https://github.com/mlell/singularity-r/releases) section.
 
-**Option 1:** If you trust me, download the image from the 
-["Releases"](https://github.com/mlell/singularity-r/releases) section. The 
-commit on which the image is based is included as a container label.
+Extract the downloaded archive. **Note:** In the following, the extracted
+directory is referred to as *CONTAINER_DIR*. Replace that with the real 
+folder for your case when executing commands shown here!
 
-**Option 2:** Clone this repository and execute `sudo ./build.sh`. This calls 
-`singularity build` to produce two versions of the container, with and without
-RStudio Server. 
+**Option 2:** (You need to have root rights for this) Clone this repository
+and execute `sudo ./build.sh`. This calls `singularity build` to produce
+two versions of the container, with and without RStudio Server. 
 
-## Run
+## Connecting your project to the container
 
-1. Download one of the container image into its own directory. Do not rename the 
-   containers from their original names `r-py.sif` or `rstudio.sif`, or you will
-   have to adapt the helper scripts.
-2. Change working directory to the container folder and execute 
-  
-       singularity run -B "$PWD" --pwd "$PWD" CONTAINERNAME.sif setup
-       
-   This will copy several helper scripts to the same directory as the container.
-   Once this is done, you can run several different projects using the same 
-   container.
-3. Change the working directory to the main folder of the analysis. Run
+These steps must be done once for each project. 
 
-       /PATH/TO/CONTAINER/createproject
+Change the working directory to your *project folder*. That is the directory
+that holds the files of your analysis. Only files in this folder and subfolders
+will be visible from RStudio! This ensures that you have everything which is 
+needed for your analysis in one folder.
 
-   This will copy a script into your project directory that contains the link to
-   the used container and enables you to define external files and folders that
-   shall be provided to the apps inside the container. 
+    cd PROJECT_DIR    # <-- replace by your project directory!
 
-   Instead of an absolute path, you can also provide a relative path, for 
-   example if you place the container in a subfolder of your project.
-4. To start RStudio Server, change to your project directory and run the script
+Then create the starter script in the project folder (you have to replace
+`CONTAINER_DIR` to the location where you downloaded and extracted the 
+container!):
+
+    CONTAINER_DIR/createproject
+
+This will copy a script called `rstudio` into your project directory that can
+start the container. It also contains settings like external files and folders
+that shall be provided to the apps inside the container. 
+ 
+## Starting RStudio Server 
+
+Change to your project directory and run the script
 
        ./rstudio start
  
-   There are several other functions. List them using `./rstudio --help`
+There are several other functions. List them using `./rstudio --help`
 
-   To run other programs from within the container, if you use `rstudio.sif`, run
+To run other programs from within the container, if you use `rstudio.sif`, run
  
-       ./rstudio exec COMMAND ARGS....
+    ./rstudio exec COMMAND ARGS....
 
-   or if you use `r-py.sif`, run
+or if you use `r-py.sif`, run
 
-       ./cexec COMMAND ARGS...
+    ./cexec COMMAND ARGS...
 
 
 

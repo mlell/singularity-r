@@ -10,19 +10,8 @@ From: r-py.sif
   accompanied with scripts that faclitate managing multiple RStudio Server
   instances and reproducible file paths of the analysis.
 
-  1 Setup after download
-  ======================
 
-  After downloading this container, move it to its own directory and extract
-  the auxilliary scripts by calling
-
-      singularity run -B "$PWD" --pwd "$PWD" CONTAINERNAME.sif setup
-
-  
-  2 Project directory
-  ===================
-
-  Change working directory into the root directory of your analysis and
+  Change the working directory into the root directory of your analysis and
   call (replace upper-case parts):
 
       /PATH/TO/CONTAINER/createproject"
@@ -33,7 +22,8 @@ From: r-py.sif
   for others to rerun your analysis because your machine-specific file
   paths are not visible from within the container.
 
-  To start RStudio Server, call
+  To start RStudio Server, use the script "rstudio" that is deployed with
+  this container:
 
       ./rstudio start
 
@@ -41,6 +31,10 @@ From: r-py.sif
 
       ./rstudio --help
 
+  For instructions to manually start RStudio server from the container, 
+  you can also check the help page for rserver:
+   
+      singularity run-help --app rserver
 
 %apprun rserver
   exec rserver "${@}"
@@ -60,7 +54,11 @@ From: r-py.sif
   Host and port of RStudio server can be set by calling RStudio like this:
   `rserver --www-address <HOST> --www-port <PORT>`. For HOST, 127.0.0.1 is
   recommended, as this container provides no encryption of the connection to
-  RStudio.
+  RStudio. Use the tool 
+
+      /usr/bin/find_port 
+
+  in this container to find a free port in a given range.
 
   When RStudio Server is run on a publicly accessable server, user
   authentication could be nessecary. This image provides different means of
@@ -132,14 +130,6 @@ From: r-py.sif
     scripts/inside/find_port \
     ${SINGULARITY_ROOTFS}/usr/bin
 
-  cp_container(){
-    install -Dv scripts/outside/"$1" "${SINGULARITY_ROOTFS}/usr/lib/container_commands/$2"
-  }
-  cp_container rstudio rstudio
-  cp_container rstudio_adv rstudio_adv
-  cp_container createproject-rstudio createproject
-  cp_container user-launcher-rstudio user-launcher
-
 %post
   # Software versions
   export RSTUDIO_VERSION=1.4.1717
@@ -192,13 +182,5 @@ From: r-py.sif
   exec /usr/lib/rstudio-server-bin/ldap_auth --help
 
 
-%runscript
-  bash /usr/lib/container_commands/setup "$@"
-  if [ "$1" = "setup" ]; then
-    echo 
-    echo "NOTE: Make sure the container SIF file is called 'rstudio.sif'"
-    echo "or adapt the scripts that were just created in the container"
-    echo "directory!"
-  fi
 
 
