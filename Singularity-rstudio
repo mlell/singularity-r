@@ -164,6 +164,13 @@ From: r-py.sif
   # base image.
   echo "OMP_NUM_THREADS=1" >> /etc/R/Renviron.site
 
+  # RStudio server settings:
+  # Do not suspend idle sessions (resuming takes very long for big variables)
+  cat >> /etc/rstudio/rsession.conf <<EOF
+ 
+  session-timeout-minutes=0
+  EOF
+  
   # Clean up
   umount /var/lib/apt
   umount /var/cache/apt

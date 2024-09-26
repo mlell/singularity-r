@@ -3,7 +3,6 @@ From: debian-baseimage.sif
 
 %labels
   Maintainer Moritz Lell
-  R_Version 4.0.4
   git_repository https://github.com/mlell/singularity-r
 
 %help 
@@ -47,14 +46,16 @@ From: debian-baseimage.sif
 
 %setup
   set -ue
-  
-  if [ ! -z "${DEBUG-}" ]; then
-    # make sure it doesn't fail
+
+  if [ -z "${DEBUG-}" ]; then
+    # make sure git status can run without error
     git status -s &>/dev/null
+    # If git status -s outputs anything, we have a dirty working dir
     if [ ! "$(git status -s | wc -l)" = "0" ]; then
       echo "Working dir dirty!" >&2
       exit 1
     fi 
+    # Working dir is clean, record the commit hash inside the container
     git rev-parse HEAD >"$SINGULARITY_ROOTFS/commit"
   else
     echo "debug" > "$SINGULARITY_ROOTFS/commit"
@@ -128,23 +129,23 @@ From: debian-baseimage.sif
   #   - DBMS:                   libpq (libmariaclientdb <-version mismatch during install)
   apt-get install -y --no-install-recommends \
     gcc-11 \
-    r-base=${R_VERSION}* \
-    r-base-core=${R_VERSION}* \
-    r-base-dev=${R_VERSION}* \
-    r-recommended=${R_VERSION}* \
-    r-base-html=${R_VERSION}* \
-    r-doc-html=${R_VERSION}* \
+    r-base \
+    r-base-core \
+    r-base-dev \
+    r-recommended \
+    r-base-html \
+    r-doc-html \
     libpython3-all-dev python3-pip \
     libcurl4-openssl-dev \
     libssl-dev \
     man  nano   graphviz \
-    procps  imagemagick \
+    procps  imagemagick cmake \
     jags less  \
     libxml2-dev \
     libcairo2-dev \
     libxt-dev \
     libarmadillo-dev \
-    libnetcdf18 libnetcdf-dev libhdf5-dev\
+    libnetcdf-dev libhdf5-dev\
     gdal-bin libgdal-dev \
     proj-bin libproj-dev \
     libudunits2-dev \
@@ -183,15 +184,6 @@ From: debian-baseimage.sif
   ln -s python3 /usr/bin/python
 
 
-  # RStudio server settings
-
-  # Do not suspend idle sessions (resuming takes very long for big variables)
-  cat >> /etc/rstudio/rsession.conf <<EOF
- 
-  session-timeout-minutes=0
-  EOF
-  
-
   # Clean up
   umount /var/lib/apt
   umount /var/cache/apt
@@ -199,6 +191,7 @@ From: debian-baseimage.sif
   # Write the current git commit as label
   echo "git_commit $(cat /commit)" >> "$SINGULARITY_LABELS"
   rm /commit
+
 
 %apprun R
   exec R "${@}"
