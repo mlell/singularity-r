@@ -3,7 +3,7 @@
 # Build the Singularity container
 set -ue
 
-if [ ! -z "${DEBUG-}" ]; then
+if [ -z "${DEBUG-}" ]; then
   # make sure it doesn't fail
   git status -s &>/dev/null
   if [ ! "$(git status -s | wc -l)" = "0" ]; then
@@ -12,6 +12,8 @@ if [ ! -z "${DEBUG-}" ]; then
   fi 
 fi
 
+# Reuse the apt cache directories across builds. Inside the Singularity
+# recipes, do not delete but unmount them after the installation
 sgb(){
   singularity build -F \
     -B "$PWD/vca:/var/cache/apt" \
@@ -21,5 +23,7 @@ sgb(){
 if [ ! -f debian-baseimage.sif ]; then 
   singularity build -F debian-baseimage.sif Singularity-baseimage
 fi
+
 sgb r-py.sif Singularity-r
 sgb rstudio.sif Singularity-rstudio
+
