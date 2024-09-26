@@ -3,7 +3,7 @@ From: r-py.sif
 
 %labels
   Maintainer Moritz Lell
-  RStudio_Version 1.4.1717
+  RStudio_Version 2024.9.0-375
 
 %help
   This container features R linked to OpenBLAS and RStudio Server and are
@@ -132,7 +132,7 @@ From: r-py.sif
 
 %post
   # Software versions
-  export RSTUDIO_VERSION=1.4.1717
+  export RSTUDIO_VERSION=2024.9.0-375
 
   # Install RStudio Server
   apt-get update -o Acquire::Check-Valid-Until=false
@@ -144,6 +144,7 @@ From: r-py.sif
   wget \
     --no-verbose \
     -O rstudio-server.deb \
+    "https://download2.rstudio.org/server/jammyamd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb"
     "https://download2.rstudio.org/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb"
   gdebi -n rstudio-server.deb
   rm -f rstudio-server.deb
