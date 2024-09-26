@@ -7,6 +7,24 @@ Singularity images for R, Python 3 and RStudio Server.
 These images can be used to improve reproducibility in producing analyses with
 R and Python. 
 
+## Downloading the container
+
+**Option 1:** If you trust me, download the latest archive from the 
+["Releases"](https://github.com/mlell/singularity-r/releases) section.
+
+Extract the downloaded archive. **Note:** In the following, the extracted
+directory is referred to as *CONTAINER_DIR*. Replace that with the real 
+folder for your case when executing commands shown here!
+
+**Option 2:** (You need to have root rights for this) Clone this repository
+and execute `sudo ./build.sh`. This calls `singularity build` to produce
+two versions of the container, with and without RStudio Server. If you change
+anything, the build will abort because the current git commit is saved in the
+SIF file. To build from a dirty working directory, use `sudo DEBUG=TRUE ./build`.
+Maybe it will complain that it is missing a GPG key for checking the signature
+on the downloaded packages. Load those using 
+`gpg --keyserver keyserver.ubuntu.com --recv-key <key-id>`
+
 ## What is a project folder
 
 This projects works with the idea of a **project folder**. That is a folder
@@ -25,18 +43,6 @@ A possibility to include files and folders that are outside of the project
 folder is also available which enables you to clearly document additional 
 dependencies of your work.
 
-## Downloading the container
-
-**Option 1:** If you trust me, download the latest archive from the 
-["Releases"](https://github.com/mlell/singularity-r/releases) section.
-
-Extract the downloaded archive. **Note:** In the following, the extracted
-directory is referred to as *CONTAINER_DIR*. Replace that with the real 
-folder for your case when executing commands shown here!
-
-**Option 2:** (You need to have root rights for this) Clone this repository
-and execute `sudo ./build.sh`. This calls `singularity build` to produce
-two versions of the container, with and without RStudio Server. 
 
 ## Connecting your project to the container
 
@@ -84,6 +90,12 @@ as a mirror, so the software versions should not differ between different builds
 this container, given it is based on the same commit of this repository. The snapshot
 timestamp is included in the `MirrorURL:` line of the file `Singularity-r`.
 
+To rebuild the Singularity images with different (e.g. newer) software versions, change
+the following places:
+
+ * In `Singularity-baseimage` the timecode in the line starting with "MirrorURL".
+   Go to snapshots.debian.org to see which time codes are possible
+ * In `Singularity-rstudio` the two lines that mention the RStudio version.
 
 ## Contents
 
