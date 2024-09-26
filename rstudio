@@ -1,73 +1,24 @@
 #!/bin/bash
 set -ue
 
-# File name of the container
-export CONTAINER="rstudio.sif"
+# Path to the SIF file that is the container
+CONTAINER="$CONTAINER_DIR/rstudio.sif"
 
-# Directory whose contents shall be visible inside the container
-# can be ".", which is the current directory
-export PROJECT_DIR="testp"
-
-# Directory where to store information and tem
-export DIR_RUN="run/testp/"
-
-export BIND_PROJECT_TO="/proj"
-
-export INST_DIR_VAR=()
-
-export INST_DIR_TMP=(
-  "tmp:/tmp"
-  "var_run:/var/run"
-)
-export ADDRESS="127.0.0.1"
-export PORT_MIN="8000"
-export PORT_MAX="8200"
-
+# Path (host system) where the session data of different RStudio Server
+# sessions is stored.  Per session, a subfolder is created that is mounted to
+# ~/.rstudio inside the container.  Also, the .pid files are created here,
+# holding information about network port, host machine and more.
+DIR_RUN=".run"
 
 # Further arguments to forward to "singularity instance start ..."
-export ARGS_INSTANCE=()
+ARGS_INSTANCE=()
 
 # Further arguments to forward to "singularity exec ..."
-export ARGS_EXEC=()
+ARGS_EXEC=()
+
 
 # === Parse the user arguments ==================================
 thisdir="$(dirname "${BASH_SOURCE[0]}")"
 
-
-source "$thisdir/instance"
-source "$thisdir/start_rstudio.sh"
-
-if [[ "$#" = 0 ]]; then
-  echo "Missing command (try --help)" >&2
-  exit 1
-fi
-cmd="${1}"
-shift
-
-# Which instance name to use? Use "default" if none is given
-case "$cmd" in
-  start)
-    if [[ -z "${1-}" ]]; then
-      echo "Using instance name: default" >&2
-      id="default"
-    else id="$1"; shift; fi
-    ;;
-  list) ;;
-  stop|exec|passwd|shell|create|delete)
-    id="${1?:Missing instance name (use $0 list)}" 
-    shift 
-    ;;
-esac
-
-case "$cmd" in 
-  start)  start_instance "$id" --raw start_rstudio "$id" ; ;;
-  list)   list id hostname address port pid status ; ;;
-  stop)   stop "$id"         ; ;;
-  exec)   execute "$id" --exec "$@" ; ;;
-  passwd) execute "$id" --exec /usr/lib/rstudio-server/bin/rstudio_passwd .rstudio-passwd ; ;;
-  shell)  execute "$id" --exec bash -l ; ;;
-  create) create "$id" ; ;;
-  delete) delete "$id" ; ;;
-  *) echo "Invalid command (use  --help)" >&2; exit 1; ;;
-esac
+source "$thisdir/rstudio_adv"
 

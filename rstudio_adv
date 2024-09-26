@@ -9,13 +9,6 @@ set -ue
 # project dir, changing the working directory accordingly inside the
 # container is attempted
 : ${PROJECT_DIR}
-# Array of arguments that are forwarded to "singularity instance". If no
-# instance is started (function cexec()), they are forwarded to singularity
-# exec
-: "${ARGS_INSTANCE[@]}"
-# Array of arguments that are forwarded to singularity exec, for example when
-# executing the rserver binary in the container or the cexec() function
-: "${ARGS_EXEC[@]}"
 # Path where the project directory is mounted inside the container
 : "${BIND_PROJECT_TO}"
 # Path to the container SIF file
@@ -31,8 +24,20 @@ set -ue
 : "${ADDRESS}"
 # Minimum and maximum of the port range to scan for a free port for a newly
 # started RStudio Server
-: "${port_min}"
-: "${port_max}"
+: "${PORT_MIN}"
+: "${PORT_MAX}"
+
+# Arrays that can be set. Do not check for presence because in bash, 
+# empty arrays look like unset variables...
+
+# Array of arguments that are forwarded to "singularity instance". If no
+# instance is started (function cexec()), they are forwarded to singularity
+# exec
+# : "${ARGS_INSTANCE[@]}"
+# Array of arguments that are forwarded to singularity exec, for example when
+# executing the rserver binary in the container or the cexec() function
+# : "${ARGS_EXEC[@]}"
+
 
 thisdir="$(dirname "${BASH_SOURCE[0]}")"
 
@@ -73,6 +78,8 @@ msg(){
   fi
   echo >&2
 }
+
+die(){ msg "$@" >&2; exit 1; }
 
 get_wd_in_container(){
   # Returns: "." if $1 matches with $PROJECT_DIR, "relative/path" if $1
@@ -324,7 +331,7 @@ cexec(){
   # When running without an instance, the instance arguments, such as 
   # which directories to bind, must be given to the "singularity exec" call instead
   if [[ ! -z  "$id" ]]; then
-    args=( "${ARGS_EXEC[@]}" )
+    args=( "${ARGS_EXEC[@]+"${ARGS_EXEC[@]}"}" )
 
     if [ ! -d "$DIR_RUN/${id}.rstudio" ]; then
       msg "Creating instance \"$id\""
@@ -344,7 +351,6 @@ cexec(){
     sing="instance://$instancename"   # singularity container instance
 
   else
-    args=( "${ARGS_INSTANCE[@]}" "${ARGS_EXEC[@]}" )
     sing="$CONTAINER"   # singularity container file
   fi
 
@@ -357,6 +363,7 @@ cexec(){
     exit 1
   fi
 
+  ARGS_INSTANCE+=( -H "$PROJECT_DIR:$BIND_PROJECT_TO" )
   ARGS_EXEC+=( --pwd "$wd_inside" )
 
   if [[ $# = 0 ]]; then
@@ -367,10 +374,27 @@ cexec(){
     local cmd=(bash -l -c '$@' "$1" "$@" )  
   fi
 
+  # strange idiom "${arr[@]+"${arr[@]}"}" to guard against the case that arr is
+  # empty which means for bash<4.4 that it does not exist at all and thus gives
+  # an error because of set -u at the script beginning.....
+
   if [[ -z "$id" ]]; then
-    singularity exec "${ARGS_INSTANCE[@]}" "${ARGS_EXEC[@]}" "$CONTAINER" "${cmd[@]}"
+    # Run without a Singularity instance
+    singularity exec \
+       "${ARGS_INSTANCE[@]+"${ARGS_INSTANCE[@]}"}" \
+       "${ARGS_EXEC[@]+"${ARGS_EXEC[@]}"}" \
+        "$CONTAINER" "${cmd[@]}"
   else
-    singularity exec "${ARGS_EXEC[@]}" "instance://$instancename" "${cmd[@]}"
+
+    # Run within a singularity instance
+    ARGS_INSTANCE+=(
+     -B "$rundir/var-lib:/var/lib/rstudio-server" 
+     -B "$rundir/rstudio:$BIND_PROJECT_TO/.local/share/rstudio" )
+    singularity exec }
+      -W "$tmpdir" \
+      -B "$tmpdir:/var/run" \
+      "${ARGS_EXEC[@]+"${ARGS_EXEC[@]}"}" \
+      "instance://$instancename" "${cmd[@]}"
   fi 
 
 }
@@ -533,7 +557,7 @@ EOF
   fi
 
   if [ "$rstudio" = "true" ]; then
-    local port=$(singularity -s exec "$CONTAINER" /usr/bin/find_port "$ADDRESS" "$port_min" "$port_max")
+    local port=$(singularity -s exec "$CONTAINER" /usr/bin/find_port "$ADDRESS" "$PORT_MIN" "$PORT_MAX")
   fi
   
   local outerpid="$BASHPID"
@@ -607,7 +631,7 @@ EOF
   set +e 
   SINGULARITYENV_RSTUDIO_PASSWORD_FILE="$BIND_PROJECT_TO/.rstudio-passwd" \
   singularity exec \
-    "${ARGS_EXEC[@]}" \
+    "${ARGS_EXEC[@]+"${ARGS_EXEC[@]}"}" \
     --pwd "$BIND_PROJECT_TO" \
     "instance://$instancename" \
       rserver \
@@ -615,8 +639,10 @@ EOF
       --www-port $port \
       --auth-none 0 \
       --server-daemonize=no \
+      --server-user="$USER" \
       --auth-pam-helper rstudio_auth_file \
     > "$logfile"
+  set -e
   local code=$?
   echo "rserver exited with code $code" >> "$logfile"
 
@@ -654,8 +680,10 @@ start_instance(){
   mkdir -p "$rundir/var-lib"
   mkdir -p "$rundir/rstudio"
 
-  ARGS_INSTANCE+=( -B "$rundir/var-lib:/var/lib/rstudio-server" )
-  ARGS_INSTANCE+=( -B "$rundir/rstudio:$BIND_PROJECT_TO/.local/share/rstudio" )
+  ARGS_INSTANCE+=( 
+   -H "$PROJECT_DIR:$BIND_PROJECT_TO" 
+   -B "$rundir/var-lib:/var/lib/rstudio-server" 
+   -B "$rundir/rstudio:$BIND_PROJECT_TO/.local/share/rstudio" )
 
   set +e
   singularity instance start \

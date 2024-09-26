@@ -14,6 +14,14 @@ thisdir="$(realpath -s "$(dirname "${BASH_SOURCE[0]}")")"
 # beginning of the scripts "rstudio" and "rstudio_adv" to see which 
 # environment variables are expected.
 
+# PROJECT_DIR:
+# Per default this is set to the directory where this script lies.
+PROJECT_DIR="$thisdir"
+
+# BIND_PROJECT_TO:
+# On which path the current folder will be visible inside the container
+BIND_PROJECT_TO="/proj"
+
 # EXTERNAL_FILES:
 # Files/directories that are available in the container besides the project
 # directory.
@@ -30,12 +38,14 @@ EXTERNAL_FILES=(
 # "/home/user/datasets/:/ext/input:ro" 
 )
 
-# PROJECT_DIR:
-# Per default this is set to the directory where this script lies.
-PROJECT_DIR="$thisdir"
+# On which address and on which port range to start RStudio
+ADDRESS="127.0.0.1"
+PORT_MIN="8000"
+PORT_MAX="8200"
+
 
 # CONTAINER_DIR:
-# Where the RStudio Server container is located.
+# Where the RStudio Server container is located (directory).
 ###SED_REPLACE_HERE###
 
 
