@@ -1,5 +1,5 @@
 BootStrap: debootstrap
-OSVersion: sid
+OSVersion: bookworm
 MirrorURL: https://snapshot.debian.org/archive/debian/20240926T083932Z/
 
 %labels
@@ -25,6 +25,10 @@ MirrorURL: https://snapshot.debian.org/archive/debian/20240926T083932Z/
   fi
 
 %post
+# For ssl3, can remove if newer RStudio versions can do without this
+ cat <<EOF >>/etc/apt/sources.list
+deb https://snapshot.debian.org/archive/debian-security/20240926T121404Z/ debian-security bookwork-security main
+EOF
 
  rm -rf /var/lib/apt/*
  rm -rf /var/cache/apt/*

@@ -1,5 +1,7 @@
-BootStrap: localimage
-From: debian-baseimage.sif
+BootStrap: docker
+From: debian:bookworm-20240904-slim
+#BootStrap: localimage
+#From: debian-baseimage.sif
 
 %labels
   Maintainer Moritz Lell

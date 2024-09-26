@@ -3,7 +3,7 @@ From: r-py.sif
 
 %labels
   Maintainer Moritz Lell
-  RStudio_Version 2024.9.0-375
+  RStudio_Version 2024.09.0-375
 
 %help
   This container features R linked to OpenBLAS and RStudio Server and are
@@ -132,31 +132,33 @@ From: r-py.sif
 
 %post
   # Software versions
-  export RSTUDIO_VERSION=2024.9.0-375
+  export RSTUDIO_VERSION=2024.09.0-375
+
+# For ssl3, can remove if newer RStudio versions can do without this
+# cat <<EOF >>/etc/apt/sources.list
+#deb https://snapshot.debian.org/archive/debian-security/20240926T121404Z/ debian-security bookwork-#security main
+#EOF
 
   # Install RStudio Server
   apt-get update -o Acquire::Check-Valid-Until=false
   apt-get install -y --no-install-recommends \
-    ca-certificates \
+    ca-certificates python3-ldap3 \
     wget \
     gdebi-core \
-    git vim emacs-nox
+    git vim emacs-nox \
+    libssl3  # needed by RStudio but not in package deps metadata?
+
+#wget "http://security.debian.org/debian-security/pool/updates/main/o/openssl/libssl-#dev_1.1.1n-0+deb10u6_amd64.deb"
+#wget "http://security.debian.org/debian-security/pool/updates/main/o/openssl/#libssl1.1_1.1.1n-0+deb10u6_amd64.deb"  
+
+ # dpkg -i libssl1.1_1.1.1n-0+deb10u6_amd64.deb
+ # dpkg -i libssl-dev_1.1.1n-0+deb10u6_amd64.deb
   wget \
     --no-verbose \
     -O rstudio-server.deb \
-    "https://download2.rstudio.org/server/jammyamd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb"
-    "https://download2.rstudio.org/server/bionic/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb"
+    "https://download2.rstudio.org/server/jammy/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb"
   gdebi -n rstudio-server.deb
   rm -f rstudio-server.deb
-
-  # Add support for LDAP authentication
-  #wget \
-  #  --no-verbose \
-  #  -O get-pip.py \
-  #  "https://bootstrap.pypa.io/get-pip.py"
-  #python3 get-pip.py
-  #rm -f get-pip.py
-  pip3 install ldap3
 
   # Do not let OpenBLAS launch a thread per core, that exhausts resource
   # limits when running many workers on machines with many cores
@@ -170,7 +172,7 @@ From: r-py.sif
   cat >> /etc/rstudio/rsession.conf <<EOF
  
   session-timeout-minutes=0
-  EOF
+EOF
   
   # Clean up
   umount /var/lib/apt
