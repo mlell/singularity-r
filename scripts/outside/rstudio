@@ -1,67 +1,73 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -ue
-#
-# Main starting script for this container. 
-#
-# Determine parameters for singularity for high reproducibility
-# based on the environment variables provided by the caller.
-# Then forward the container commands to other scripts
-#
 
+# File name of the container
+export CONTAINER="rstudio.sif"
+
+# Directory whose contents shall be visible inside the container
+# can be ".", which is the current directory
+export PROJECT_DIR="testp"
+
+# Directory where to store information and tem
+export DIR_RUN="run/testp/"
+
+export BIND_PROJECT_TO="/proj"
+
+export INST_DIR_VAR=()
+
+export INST_DIR_TMP=(
+  "tmp:/tmp"
+  "var_run:/var/run"
+)
+export ADDRESS="127.0.0.1"
+export PORT_MIN="8000"
+export PORT_MAX="8200"
+
+
+# Further arguments to forward to "singularity instance start ..."
+export ARGS_INSTANCE=()
+
+# Further arguments to forward to "singularity exec ..."
+export ARGS_EXEC=()
+
+# === Parse the user arguments ==================================
 thisdir="$(dirname "${BASH_SOURCE[0]}")"
-export CONTAINER_DIR="$thisdir"
 
-# Required environment variables: 
-# * PROJECT_DIR:   Where the project directory is outside of the container
-#
 
-# ===== Default settings for RStudio Server startscript ======
-BIND_PROJECT_TO="/proj"    # Where project directory is mounted inside of the container
-DIR_RUN="$PROJECT_DIR/.run/rstudio-container"
-ADDRESS="127.0.0.1"
-port_min=8000
-port_max=8100
-CONTAINER="$thisdir/rstudio.sif"
-# Accept unset as empty, because it is an array and for arrays,
-# A=() means A is unset
-: "${EXTERNAL_FILES-}"     # Which external files/folders are accessible. 
+source "$thisdir/instance"
+source "$thisdir/start_rstudio.sh"
 
-# === Helpful messages for first-time users ==================
-
-if [ -z "${PROJECT_DIR-}" ]; then
-  echo "ERROR: Don't know project directory." >&2
-  echo "Execute 'createproject' if you run RStudio in this directory for the first time" >&2
+if [[ "$#" = 0 ]]; then
+  echo "Missing command (try --help)" >&2
   exit 1
 fi
-# ===== Default settings for Singularity =====================
+cmd="${1}"
+shift
 
-# ...to singularity instance
-ARGS_INSTANCE=(
-  --contain
-  -H "$PROJECT_DIR:$BIND_PROJECT_TO"
-)
+# Which instance name to use? Use "default" if none is given
+case "$cmd" in
+  start)
+    if [[ -z "${1-}" ]]; then
+      echo "Using instance name: default" >&2
+      id="default"
+    else id="$1"; shift; fi
+    ;;
+  list) ;;
+  stop|exec|passwd|shell|create|delete)
+    id="${1?:Missing instance name (use $0 list)}" 
+    shift 
+    ;;
+esac
 
-# ... to singularity exec
-# (if no instance is started, then $ARGS_INSTANCE is
-# also provided to singularity exec)
-ARGS_EXEC=(
-  --cleanenv
-)
-
-# Add external files as "-B...." arguments to singularity
-# command line
-for i in ${!EXTERNAL_FILES[@]}; do
-  ARGS_INSTANCE+=(-B "${EXTERNAL_FILES[$i]}")
-done
-
-
-# ===== Forward to starting script ==========================
-
-if [ "$#" = 0 ]; then
-  echo Argument required >&2
-  exit 1
-fi
-
-
-source "$thisdir"/rstudio_adv "$@"
+case "$cmd" in 
+  start)  start_instance "$id" --raw start_rstudio "$id" ; ;;
+  list)   list id hostname address port pid status ; ;;
+  stop)   stop "$id"         ; ;;
+  exec)   execute "$id" --exec "$@" ; ;;
+  passwd) execute "$id" --exec /usr/lib/rstudio-server/bin/rstudio_passwd .rstudio-passwd ; ;;
+  shell)  execute "$id" --exec bash -l ; ;;
+  create) create "$id" ; ;;
+  delete) delete "$id" ; ;;
+  *) echo "Invalid command (use  --help)" >&2; exit 1; ;;
+esac
 
