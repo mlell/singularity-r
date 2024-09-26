@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -ue
 
+echo "Currently not functional, need to fix the tests first" >&2
+exit 1
+
 export IMG="r-py.sif"
 echo "Using Singularity image: ${IMG}"
 
@@ -14,7 +17,7 @@ version () {
 }
 
 
-singularity exec "$IMG" R -q -e "stopifnot(getRversion() == '$(version)')"
+# singularity exec "$IMG" R -q -e "stopifnot(getRversion() == '$(version)')"
 
 
 
@@ -30,7 +33,7 @@ mkdir test/container-r
 
 cd test/container-r
 cp -L ../../r-py.sif .
-singularity run r-py.sif setup
+cp ../../scripts/outside/* 
 
 #
 ################ Test project creation
