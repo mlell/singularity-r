@@ -115,19 +115,19 @@ From: r-py.sif
 
 %setup
   install -Dv \
-    scripts/inside/rstudio_auth.sh \
+    scripts/rstudio_auth.sh \
     ${SINGULARITY_ROOTFS}/usr/lib/rstudio-server/bin/rstudio_auth
   install -Dv \
-    scripts/inside/rstudio_auth_file.py \
+    scripts/rstudio_auth_file.py \
     ${SINGULARITY_ROOTFS}/usr/lib/rstudio-server/bin/rstudio_auth_file
   install -Dv \
-    scripts/inside/ldap_auth.py \
+    scripts/ldap_auth.py \
     ${SINGULARITY_ROOTFS}/usr/lib/rstudio-server/bin/ldap_auth
   install -Dv \
-    scripts/inside/rstudio_passwd.py \
+    scripts/rstudio_passwd.py \
     ${SINGULARITY_ROOTFS}/usr/lib/rstudio-server/bin/rstudio_passwd
   install -Dv \
-    scripts/inside/find_port \
+    scripts/find_port \
     ${SINGULARITY_ROOTFS}/usr/bin
 
 %post
