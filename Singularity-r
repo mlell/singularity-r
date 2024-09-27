@@ -129,6 +129,7 @@ From: debian:bookworm-20240904-slim
   #   - Grid computing scheduler:
   #       libzmq3 libopenmpi
   #   - DBMS:                   libpq (libmariaclientdb <-version mismatch during install)
+  #   - Non-root package installation: apt-rdepends
   apt-get install -y --no-install-recommends \
     gcc-11 \
     r-base \
@@ -140,7 +141,7 @@ From: debian:bookworm-20240904-slim
     libpython3-all-dev python3-pip \
     libcurl4-openssl-dev \
     libssl-dev \
-    man  nano   graphviz \
+    man  nano   graphviz apt-rdepends \
     procps  imagemagick cmake \
     jags less  \
     libxml2-dev \
@@ -193,7 +194,9 @@ From: debian:bookworm-20240904-slim
   # Write the current git commit as label
   echo "git_commit $(cat /commit)" >> "$SINGULARITY_LABELS"
   rm /commit
-
+  echo -n "R_Version " >> "$SINGULARITY_LABELS"
+  Rscript -e "cat(toString(getRversion()),'\n')" >> "$SINGULARITY_LABELS"
+  echo "create_date $(date -u +'%Y-%m-%dT%H:%M:%SZ')"  >> "SINGULARITY_LABELS"
 
 %apprun R
   exec R "${@}"

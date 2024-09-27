@@ -30,6 +30,9 @@ MirrorURL: https://snapshot.debian.org/archive/debian/20240926T083932Z/
 deb https://snapshot.debian.org/archive/debian-security/20240926T121404Z/ debian-security bookwork-security main
 EOF
 
+  echo "create_date $(date -u +'%Y-%m-%dT%H:%M:%SZ')"  >> "SINGULARITY_LABELS"
+
+
  rm -rf /var/lib/apt/*
  rm -rf /var/cache/apt/*
 
