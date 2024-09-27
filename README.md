@@ -25,6 +25,19 @@ Maybe it will complain that it is missing a GPG key for checking the signature
 on the downloaded packages. Load those using 
 `gpg --keyserver keyserver.ubuntu.com --recv-key <key-id>`
 
+## How to use
+
+To start RStudio, first to to your analysis project using `cd` and then execute
+`CONTAINER_DIR/createproject-rstudio`. You must do this only once. This will 
+generate a file called `rstudio` in your folder. Execute `./rstudio start`.
+
+To run a program of the container, like `Rscript` for an R computation without
+starting RStudio, execute `./rstudio exec -i exec PROGRAM ARGS...`. (Replace
+all-caps parts)
+
+For more information, use the help pages like `./rstudio --help`, 
+`./rstudio start --help`, `./rstudio exec --help`, etc.
+
 ## What is a project folder
 
 This projects works with the idea of a **project folder**. That is a folder
@@ -41,46 +54,10 @@ analysis.
 
 A possibility to include files and folders that are outside of the project 
 folder is also available which enables you to clearly document additional 
-dependencies of your work.
-
-
-## Connecting your project to the container
-
-These steps must be done once for each project. 
-
-Change the working directory to your *project folder*. That is the directory
-that holds the files of your analysis. Only files in this folder and subfolders
-will be visible from RStudio! This ensures that you have everything which is 
-needed for your analysis in one folder.
-
-    cd PROJECT_DIR    # <-- replace by your project directory!
-
-Then create the starter script in the project folder (you have to replace
-`CONTAINER_DIR` to the location where you downloaded and extracted the 
-container!):
-
-    CONTAINER_DIR/createproject
-
-This will copy a script called `rstudio` into your project directory that can
-start the container. It also contains settings like external files and folders
-that shall be provided to the apps inside the container. 
- 
-## Starting RStudio Server 
-
-Change to your project directory and run the script
-
-       ./rstudio start
- 
-There are several other functions. List them using `./rstudio --help`
-
-To run other programs from within the container, if you use `rstudio.sif`, run
- 
-    ./rstudio exec COMMAND ARGS....
-
-or if you use `r-py.sif`, run
-
-    ./cexec COMMAND ARGS...
-
+dependencies of your work. Open the file `./rstudio` that you have created
+using `creatproject-rstudio` and see the section about `EXTERNAL_FILES`. 
+However, note that any external dependency will make your results more
+complicated to reproduce by others and yourself in the future.
 
 
 ## Build Reproducibility
