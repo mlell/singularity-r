@@ -415,7 +415,7 @@ delete(){
     fi
   fi
   local id="${1}"
-  get_instance_by_id "$id"   # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
+  get_instance_by_id "$id"   # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir, status
 
   case "$status" in
     "CRASHED"|"stopped") : ;  ;; # ok, we can delete
@@ -449,7 +449,7 @@ shell(){
     exit 1
   fi
 
-  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
+  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir, status
 
   if [ -z "$instancename" ]; then
     msg "Instance \"$id\" is not running."
@@ -600,7 +600,7 @@ start_rstudio(){
   local id="$1"
   local port="$2"
   local sendusr1to="${3-}"
-  get_instance_by_id -r "$id"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
+  get_instance_by_id -r "$id"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir, status
 
   if [ ! -d "$DIR_RUN/${id}.rstudio" ]; then
     msg "Creating instance \"$id\""
@@ -655,7 +655,7 @@ start_instance(){
     create "$id"
   fi
 
-  get_instance_by_id -s "$id"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir
+  get_instance_by_id -s "$id"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir, status
 
   # Create a temporary directory
   tmpdir="$(make_temp)"
@@ -802,7 +802,7 @@ stop(){
 if [ $# = 0 ]; then
   msg ""
   msg "Available commands: "
-  msg "  list, start, stop, passwd, shell, create, delete."
+  msg "  list, start, stop, exec, passwd, shell, create, delete."
   msg ""
   msg "Type \"./rstudio --help\" for more info."
   msg ""
