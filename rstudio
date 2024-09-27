@@ -16,6 +16,10 @@ ARGS_INSTANCE=()
 # Further arguments to forward to "singularity exec ..."
 ARGS_EXEC=()
 
+# idiom using "+" is necessary in case EXTERNAL_FILES is empty
+for f in "${EXTERNAL_FILES[@]+"${EXTERNAL_FILES[@]}"}"; do
+  ARGS_INSTANCE+=("-B" "$f")
+done
 
 # === Parse the user arguments ==================================
 thisdir="$(dirname "${BASH_SOURCE[0]}")"
