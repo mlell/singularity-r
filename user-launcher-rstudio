@@ -72,10 +72,20 @@ DIR_RUN=".run"
 #   When the container is started without an instance (./rstudio exec 
 #   without '-i' argument), ARGS_INSTANCE is also given to
 #   singularity exec
-ARGS_INSTANCE=()
+ARGS_INSTANCE=(
+  -H "$PROJECT_DIR:$BIND_PROJECT_TO"
+)
 
 # Further arguments to forward to "singularity exec ..."
-ARGS_EXEC=()
+ARGS_EXEC=(
+  --cleanenv
+)
+# --cleanenv: Do not forward environment variables to the container. 
+#   This is so that host variables like PYTHONPATH do not interfere
+#   with the container. To set environment variables, add them to
+#   .bash_profile. Or use --env-file or --env or prefix your environment
+#   variable name with APPTAINERENV_ (formerly SINGULARITYENV_, see
+#   Apptainer/Singularity help)
 
 # forward the folders in EXTERNAL_FILES to Singularity
 # idiom using "+" is necessary in case EXTERNAL_FILES is empty

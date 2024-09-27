@@ -306,6 +306,9 @@ cexec(){
       msg "     when executing this command many times and cleans up parallel worker"
       msg "     processes when they are not shut down cleanly by the executed command"
       msg "     once the instance is shut down (use './rstudio stop' for that)"
+      msg "  --env VAR1=VALUE1,VAR2=VALUE2 | --env-file FILE"
+      msg "     Set environment variables for the command. See the Singularity/Apptainer"
+      msg "     help on the topic 'Environment and Metadata'."
       msg "  --pwd"
       msg "     Set the working directory for the command. Default: Current working dir."
       msg ""
@@ -320,6 +323,10 @@ cexec(){
     --pwd)
       if [ -z "${2-}" ]; then msg "Missing argument to  --pwd"; exit 1; fi
       wd_inside="${2}"
+      shift 2
+      ;;
+    --env|--env-file)
+      ARGS_EXEC+=( "$1" "$2" )  # forward to Singularity
       shift 2
       ;;
     --*)
@@ -374,7 +381,6 @@ cexec(){
     exit 1
   fi
 
-  ARGS_INSTANCE+=( -H "$PROJECT_DIR:$BIND_PROJECT_TO" )
   ARGS_EXEC+=( --pwd "$wd_inside" )
 
   if [[ $mode = "shell" ]]; then
@@ -453,7 +459,7 @@ rstudio_passwd(){
 }
 
 make_temp(){
-  local tmpdir="$(mktemp -d -t rstudio-XXXXXXXX)"
+  local tmpdir="$(command mktemp -d -t rstudio-XXXXXXXX)"
   # We delete this directory afterwards, so its important that $tmpdir
   # really has the path to an empty, temporary dir, and nothing else!
   # (for example empty string or home dir)
@@ -663,7 +669,6 @@ start_instance(){
   mkdir -p "$rundir/rstudio"
 
   ARGS_INSTANCE+=( 
-   -H "$PROJECT_DIR:$BIND_PROJECT_TO" 
    -B "$rundir/var-lib:/var/lib/rstudio-server" 
    -B "$rundir/rstudio:$BIND_PROJECT_TO/.local/share/rstudio" )
 
