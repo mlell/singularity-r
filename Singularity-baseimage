@@ -1,6 +1,4 @@
-BootStrap: debootstrap
-OSVersion: bookworm
-MirrorURL: https://snapshot.debian.org/archive/debian/20240926T083932Z/
+Bootstrap: scratch
 
 %labels
   Maintainer Moritz Lell
@@ -12,7 +10,7 @@ MirrorURL: https://snapshot.debian.org/archive/debian/20240926T083932Z/
 
 %setup
   
-  if [ ! -z "${DEBUG-}" ]; then
+  if [ -z "${DEBUG-}" ]; then
     # make sure it doesn't fail
     git status -s &>/dev/null
     if [ ! "$(git status -s | wc -l)" = "0" ]; then
@@ -24,16 +22,33 @@ MirrorURL: https://snapshot.debian.org/archive/debian/20240926T083932Z/
     echo "debug" > "$SINGULARITY_ROOTFS/commit"
   fi
 
+  # To keep the package cache and avoid redownload when re-running build.sh
+  mkdir -p "$SINGULARITY_ROOTFS/var/lib/apt"
+  mkdir -p "$SINGULARITY_ROOTFS/var/cache/apt"
+  mount -o bind "$PWD/vca" "$SINGULARITY_ROOTFS/var/cache/apt"
+  mount -o bind "$PWD/vca" "$SINGULARITY_ROOTFS/var/lib/apt"
+
+  trap '
+  umount "$SINGULARITY_ROOTFS/var/lib/apt"
+  umount "$SINGULARITY_ROOTFS/var/cache/apt"
+  ' EXIT
+
+  debootstrap \
+    --keyring=$HOME/.gnupg/pubring.gpg \
+    bookworm \
+    "$SINGULARITY_ROOTFS" \
+    https://snapshot.debian.org/archive/debian/20240926T083932Z/
+ 
+
 %post
 # For ssl3, can remove if newer RStudio versions can do without this
- cat <<EOF >>/etc/apt/sources.list
-deb https://snapshot.debian.org/archive/debian-security/20240926T121404Z/ debian-security bookwork-security main
-EOF
+# cat <<EOF >>/etc/apt/sources.list
+#deb https://snapshot.debian.org/archive/debian-security/20240926T121404Z/ debian-security bookwork-#security main
+#EOF
 
-  echo "create_date $(date -u +'%Y-%m-%dT%H:%M:%SZ')"  >> "SINGULARITY_LABELS"
+  echo "git_commit $(cat /commit)" >> "$SINGULARITY_LABELS"
 
 
- rm -rf /var/lib/apt/*
- rm -rf /var/cache/apt/*
 
+ 
 
