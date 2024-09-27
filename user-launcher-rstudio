@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -ue
 thisdir="$(realpath -s "$(dirname "${BASH_SOURCE[0]}")")"
+
 #
 # Start the RStudio Server container where this folder is set as the 
 # project directory by executing this file.
@@ -46,15 +47,44 @@ PORT_MAX="8200"
 
 # CONTAINER_DIR:
 # Where the RStudio Server container is located (directory).
-###SED_REPLACE_HERE###
+echo "Do not run this script directly, but use 'createproject-rstudio'" >&2; exit 1 ###REPLACE_HERE###
 
 
 # ========= END OF SETTINGS ==================================================
 
 
-# Further options can be set if the lines below are changed to not start the
-# the script "rstudio" but "rstudio_adv". See the source of that script for
-# info.
+# This section is for advanced modifications on how the container is started
+
+
 # Find container no matter of $PWD and whether CONTAINER_DIR is relative or absolute
 CONTAINER_DIR="$(cd "$thisdir"; realpath -s "$CONTAINER_DIR")"
-source "${CONTAINER_DIR}"/rstudio "$@"
+
+# Path to the SIF file that is the container
+CONTAINER="$CONTAINER_DIR/rstudio.sif"
+
+# Path (host system) where the session data of different RStudio Server
+# sessions is stored.  Per session, a subfolder is created that is mounted to
+# ~/.rstudio inside the container.  Also, the .pid files are created here,
+# holding information about network port, host machine and more.
+DIR_RUN=".run"
+
+# Further arguments to forward to "singularity instance start ..."
+#   When the container is started without an instance (./rstudio exec 
+#   without '-i' argument), ARGS_INSTANCE is also given to
+#   singularity exec
+ARGS_INSTANCE=()
+
+# Further arguments to forward to "singularity exec ..."
+ARGS_EXEC=()
+
+# forward the folders in EXTERNAL_FILES to Singularity
+# idiom using "+" is necessary in case EXTERNAL_FILES is empty
+for f in "${EXTERNAL_FILES[@]+"${EXTERNAL_FILES[@]}"}"; do
+  ARGS_INSTANCE+=("-B" "$f")
+done
+
+# Parse the user arguments and launch the container 
+# ========================================================
+
+source "$CONTAINER_DIR/rstudio_adv"
+
