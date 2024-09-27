@@ -285,18 +285,21 @@ get_instance_by_id(){
 }
 
 cexec(){
+  # Internal argument: which command to perform
+  mode="$1"  # exec or shell
+  shift 
 
-  if [ "$#" = 0 ]; then
-    echo "Argument needed (try --help)" >&2
-    exit 1
-  fi 
   local wd_inside=""
   local id=""
   while [ "$#" -gt 0 ]; do
     case "$1" in 
     --help)
-      msg "Usage: exec [options] [--] [COMMAND [ARGS...]]"
-      msg "Execute the given command in the container."
+      msg "Usage: exec [options] [--] COMMAND [ARGS...]"
+      msg "       shell [options]"
+      msg ""
+      msg "exec: Execute the given command within the container."
+      msg "shell: Launch an interactive shell (bash -l) within the container"
+      msg
       msg "Options:"
       msg "  --instance | -i"
       msg "     Execute the command in a Singularity instance. This saves startup time"
@@ -327,6 +330,14 @@ cexec(){
     *) break; ;;
     esac
   done
+
+  echo $@
+
+  if [[ $mode = "cexec" && "$#" = 0 ]]; then
+    die "Command needed (see '$mode --help')"
+  elif [[ $mode = "shell" && $# -gt 0 ]]; then
+    die "Extranenous command line arguments '$@'. See '$mode --help'"
+  fi
 
   # When running without an instance, the instance arguments, such as 
   # which directories to bind, must be given to the "singularity exec" call instead
@@ -366,12 +377,13 @@ cexec(){
   ARGS_INSTANCE+=( -H "$PROJECT_DIR:$BIND_PROJECT_TO" )
   ARGS_EXEC+=( --pwd "$wd_inside" )
 
-  if [[ $# = 0 ]]; then
-    local cmd=(bash -l); 
+  if [[ $mode = "shell" ]]; then
+    local cmd=( bash -l ); 
   else
+    # -c '$@' -> execute what is given as command args. 
     # why repeat $1 explicitly before $@? See bash -c manual. Second argument
-    # after -c is used to set the command name ($0) and is not forwarded
-    local cmd=(bash -l -c '$@' "$1" "$@" )  
+    # after -c is used to set the command name ($0) and is not forwarded 
+    local cmd=(bash -l -c '"$@"' "$1" "$@" )  
   fi
 
   # strange idiom "${arr[@]+"${arr[@]}"}" to guard against the case that arr is
@@ -429,36 +441,6 @@ delete(){
   rm "$pidfile"
 
 }
-
-shell(){
-
-  if [ "${1-}" == "--help" ]; then
-    msg "Usage: rstudio shell <ID>"
-    msg ""
-    msg "In the running RStudio container with ID <ID>, launch an"
-    msg "interactive bash shell (bash -l)."
-    msg "Run './rstudio list' to get a list of all running instances"
-    msg "and their IDs."
-    msg ""
-    exit 0
-  fi
-
-  if [ ! $# = 1 ]; then
-    msg "Usage: rstudio shell <ID>"
-    msg "Use --help for more info."
-    exit 1
-  fi
-
-  get_instance_by_id -r "$1"  # -> sets id, pidfile, rundir, PID, instancename, address, hostname, tmpdir, status
-
-  if [ -z "$instancename" ]; then
-    msg "Instance \"$id\" is not running."
-    exit 1
-  fi
-
-  singularity exec "instance://$instancename" bash -l
-}
-
 
 rstudio_passwd(){
   if [ ! $# = 0 ]; then
@@ -802,7 +784,7 @@ stop(){
 if [ $# = 0 ]; then
   msg ""
   msg "Available commands: "
-  msg "  list, start, stop, exec, passwd, shell, create, delete."
+  msg "  list, start, stop, exec, passwd, shell create, delete."
   msg ""
   msg "Type \"./rstudio --help\" for more info."
   msg ""
@@ -816,9 +798,9 @@ case $cmd in
   list)   list "$@"; ;;
   start)  start "$@"; ;;
   stop)   stop "$@"; ;;
-  exec)   cexec "$@"; ;;
+  exec)   cexec cexec "$@" ; ;;
   passwd) rstudio_passwd "$@"; ;;
-  shell)  shell "$@"; ;;
+  shell)  cexec shell "$@" ; ;;
   create) create "$@"; ;;
   delete) delete "$@"; ;;
   --help) help; ;;
