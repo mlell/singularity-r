@@ -455,7 +455,7 @@ rstudio_passwd(){
     # --help is handled by rstudio_passwd program
     exit 1
   fi
-  cexec /usr/lib/rstudio-server/bin/rstudio_passwd "$@"
+  cexec exec /usr/lib/rstudio-server/bin/rstudio_passwd "$@"
 }
 
 make_temp(){
